@@ -176,18 +176,21 @@ function Examples() {
       nick: "Abuelita",
       years: "1938 — 2023",
       quote: "Échale ganas, mija. Always.",
+      img: "/examples/rosa.jpeg",
     },
     {
       name: "Luna",
       nick: "the cat",
       years: "2010 — 2024",
       quote: "Window sills. Tuna. Sunbeams.",
+      img: "/examples/luna.jpeg",
     },
     {
       name: "Marco Tamarín",
       nick: "Marquito",
       years: "2001 — 2024",
       quote: "Ya merito — almost there.",
+      img: "/examples/marco.jpeg",
     },
   ];
   return (
@@ -203,7 +206,13 @@ function Examples() {
               key={e.name}
               className="rounded-2xl bg-card border border-border p-8 hover:-translate-y-1 transition-transform"
             >
-              <div className="aspect-[4/5] rounded-xl bg-gradient-to-br from-muted to-secondary mb-6 portrait-vignette" />
+              <div className="aspect-[4/5] rounded-xl overflow-hidden mb-6 portrait-vignette">
+                <img
+                  src={e.img}
+                  alt={e.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <div className="font-display text-2xl">{e.name}</div>
               <div className="text-sm text-muted-foreground italic">"{e.nick}"</div>
               <div className="text-xs text-muted-foreground mt-1">{e.years}</div>
