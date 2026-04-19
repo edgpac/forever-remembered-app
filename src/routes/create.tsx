@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useForm, type UseFormReturn } from "react-hook-form";
+import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -64,6 +64,7 @@ function CreateMemorial() {
       strongest_memory: "",
       insider_detail: "",
       catchphrase: "",
+      music_links: [],
       creator_relationship: "",
       miss_most: "",
       want_people_to_know: "",
@@ -125,6 +126,7 @@ function CreateMemorial() {
         strongest_memory: v.strongest_memory || null,
         insider_detail: v.insider_detail || null,
         catchphrase: v.catchphrase || null,
+        music_links: v.music_links && v.music_links.length > 0 ? v.music_links : null,
         named_people: v.named_people || null,
         creator_relationship: v.creator_relationship || null,
         miss_most: v.miss_most || null,
@@ -343,8 +345,29 @@ function Step2({ form }: FormProp) {
   );
 }
 
+function detectPlatform(url: string): "youtube" | "spotify" | "apple-music" | "soundcloud" | "other" {
+  try {
+    const { hostname } = new URL(url);
+    if (hostname.includes("youtube.com") || hostname.includes("youtu.be")) return "youtube";
+    if (hostname.includes("spotify.com")) return "spotify";
+    if (hostname.includes("music.apple.com")) return "apple-music";
+    if (hostname.includes("soundcloud.com")) return "soundcloud";
+  } catch {}
+  return "other";
+}
+
+const PLATFORM_LABELS: Record<string, string> = {
+  youtube: "YouTube",
+  spotify: "Spotify",
+  "apple-music": "Apple Music",
+  soundcloud: "SoundCloud",
+  other: "Link",
+};
+
 function Step3({ form }: FormProp) {
-  const { register, formState: { errors } } = form;
+  const { register, control, formState: { errors } } = form;
+  const { fields, append, remove } = useFieldArray({ control, name: "music_links" });
+
   return (
     <div className="space-y-6">
       <StepHeader
@@ -380,6 +403,64 @@ function Step3({ form }: FormProp) {
       >
         <input type="text" {...register("catchphrase")} className={inputCls} placeholder="Ya merito" />
       </Field>
+
+      {/* Music links */}
+      <div>
+        <div className="text-sm font-medium text-foreground mb-0.5">Their favourite music</div>
+        <div className="text-xs text-muted-foreground mb-3">
+          Paste a YouTube, Spotify, Apple Music, or SoundCloud link — up to 5 songs or playlists.
+        </div>
+
+        <div className="space-y-3">
+          {fields.map((field, i) => {
+            const url = form.watch(`music_links.${i}.url`) ?? "";
+            const platform = detectPlatform(url);
+            return (
+              <div key={field.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs tracking-widest uppercase text-accent">
+                    {url ? PLATFORM_LABELS[platform] : `Song ${i + 1}`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => remove(i)}
+                    className="text-xs text-muted-foreground hover:text-destructive transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <input
+                  type="url"
+                  {...register(`music_links.${i}.url`)}
+                  className={inputCls}
+                  placeholder="https://open.spotify.com/track/…"
+                />
+                {errors.music_links?.[i]?.url && (
+                  <span className="block text-xs text-destructive">
+                    {errors.music_links[i]?.url?.message}
+                  </span>
+                )}
+                <input
+                  type="text"
+                  {...register(`music_links.${i}.title`)}
+                  className={inputCls}
+                  placeholder="Song or playlist name (optional)"
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {fields.length < 5 && (
+          <button
+            type="button"
+            onClick={() => append({ url: "", title: "" })}
+            className="mt-3 w-full rounded-xl border-2 border-dashed border-border hover:border-accent/50 py-3 text-sm text-muted-foreground hover:text-foreground transition"
+          >
+            + Add a song or playlist
+          </button>
+        )}
+      </div>
     </div>
   );
 }

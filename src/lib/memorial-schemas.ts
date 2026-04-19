@@ -16,12 +16,18 @@ export const step2Schema = z.object({
   spoken_languages: z.string().max(200).optional().or(z.literal("")),
 });
 
+const musicLinkSchema = z.object({
+  url: z.string().url("Please enter a valid URL"),
+  title: z.string().max(200).optional().or(z.literal("")),
+});
+
 export const step3Schema = z.object({
   personality_words: z.string().max(200).optional().or(z.literal("")),
   loves: z.string().max(500).optional().or(z.literal("")),
   strongest_memory: z.string().max(1000).optional().or(z.literal("")),
   insider_detail: z.string().max(500).optional().or(z.literal("")),
   catchphrase: z.string().max(200).optional().or(z.literal("")),
+  music_links: z.array(musicLinkSchema).max(5).default([]),
 });
 
 export const step4Schema = z.object({

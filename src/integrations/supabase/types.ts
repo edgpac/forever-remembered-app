@@ -26,6 +26,7 @@ export type Database = {
           gallery_urls: string[] | null
           hometown: string | null
           id: string
+          music_links: Array<{ url: string; title?: string }> | null
           insider_detail: string | null
           language: string
           location: string | null
@@ -66,6 +67,7 @@ export type Database = {
           location?: string | null
           loves?: string | null
           memorial_id: string
+          music_links?: Array<{ url: string; title?: string }> | null
           miss_most?: string | null
           named_people?: string | null
           narrative_en?: string | null
@@ -102,6 +104,7 @@ export type Database = {
           loves?: string | null
           memorial_id?: string
           miss_most?: string | null
+          music_links?: Array<{ url: string; title?: string }> | null
           named_people?: string | null
           narrative_en?: string | null
           narrative_es?: string | null

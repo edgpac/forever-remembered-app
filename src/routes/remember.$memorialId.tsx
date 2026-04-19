@@ -12,7 +12,7 @@ const getMemorial = createServerFn({ method: "GET" })
     const { data: memorial, error } = await supabaseAdmin
       .from("memorials")
       .select(
-        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, loves, catchphrase, narrative_en, narrative_es, language, portrait_url, qr_png_url, creator_relationship, theme"
+        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, loves, catchphrase, narrative_en, narrative_es, language, portrait_url, qr_png_url, creator_relationship, theme, music_links"
       )
       .eq("memorial_id", data.memorialId)
       .maybeSingle();
@@ -120,6 +120,11 @@ function MemorialPage() {
           )}
         </div>
 
+        {/* Music */}
+        {m.music_links && m.music_links.length > 0 && (
+          <MusicSection links={m.music_links as Array<{ url: string; title?: string }>} />
+        )}
+
         {/* Quick facts */}
         {(m.hometown || m.loves || m.catchphrase) && (
           <div className="mt-16 max-w-2xl mx-auto grid sm:grid-cols-3 gap-4">
@@ -177,6 +182,120 @@ function Fact({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-border bg-card/60 p-4">
       <div className="text-[10px] tracking-[0.2em] uppercase text-accent">{label}</div>
       <div className="mt-1.5 text-sm text-foreground font-serif">{value}</div>
+    </div>
+  );
+}
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  try {
+    const p = new URL(url);
+    const id = p.hostname.includes("youtu.be")
+      ? p.pathname.slice(1)
+      : p.searchParams.get("v");
+    return id ? `https://www.youtube.com/embed/${id}` : null;
+  } catch {
+    return null;
+  }
+}
+
+function getSpotifyEmbedUrl(url: string): string | null {
+  try {
+    const p = new URL(url);
+    if (!p.hostname.includes("spotify.com")) return null;
+    // /track/ID → /embed/track/ID
+    return `https://open.spotify.com/embed${p.pathname}`;
+  } catch {
+    return null;
+  }
+}
+
+function MusicSection({ links }: { links: Array<{ url: string; title?: string }> }) {
+  return (
+    <div className="mt-16 max-w-2xl mx-auto">
+      <div className="text-xs tracking-[0.3em] uppercase text-accent mb-6">Their music</div>
+      <div className="space-y-4">
+        {links.map((link, i) => {
+          let platform = "other";
+          try {
+            const { hostname } = new URL(link.url);
+            if (hostname.includes("youtube.com") || hostname.includes("youtu.be")) platform = "youtube";
+            else if (hostname.includes("spotify.com")) platform = "spotify";
+            else if (hostname.includes("music.apple.com")) platform = "apple-music";
+            else if (hostname.includes("soundcloud.com")) platform = "soundcloud";
+          } catch {}
+
+          if (platform === "youtube") {
+            const embedUrl = getYouTubeEmbedUrl(link.url);
+            if (embedUrl) {
+              return (
+                <div key={i} className="rounded-xl overflow-hidden border border-border">
+                  {link.title && (
+                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card border-b border-border">
+                      {link.title}
+                    </div>
+                  )}
+                  <iframe
+                    src={embedUrl}
+                    title={link.title || `Song ${i + 1}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full aspect-video"
+                  />
+                </div>
+              );
+            }
+          }
+
+          if (platform === "spotify") {
+            const embedUrl = getSpotifyEmbedUrl(link.url);
+            if (embedUrl) {
+              return (
+                <div key={i} className="rounded-xl overflow-hidden border border-border">
+                  {link.title && (
+                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card border-b border-border">
+                      {link.title}
+                    </div>
+                  )}
+                  <iframe
+                    src={embedUrl}
+                    title={link.title || `Song ${i + 1}`}
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    className="w-full"
+                    height="152"
+                  />
+                </div>
+              );
+            }
+          }
+
+          // Apple Music, SoundCloud, or fallback link card
+          const platformLabel: Record<string, string> = {
+            "apple-music": "Apple Music",
+            soundcloud: "SoundCloud",
+            other: "Listen",
+          };
+          return (
+            <a
+              key={i}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:border-accent/50 transition group"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] tracking-widest uppercase text-accent mb-1">
+                  {platformLabel[platform] ?? "Listen"}
+                </div>
+                <div className="text-sm text-foreground truncate font-serif">
+                  {link.title || link.url}
+                </div>
+              </div>
+              <span className="text-muted-foreground group-hover:text-foreground transition text-lg">↗</span>
+            </a>
+          );
+        })}
+      </div>
     </div>
   );
 }
