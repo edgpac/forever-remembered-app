@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { formatYears } from "@/lib/memorial";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -68,6 +68,41 @@ export const Route = createFileRoute("/remember/$memorialId")({
   ),
 });
 
+function useFadeInOnScroll() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, visible };
+}
+
+function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const { ref, visible } = useFadeInOnScroll();
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(24px)",
+        transition: `opacity 0.75s ease ${delay}ms, transform 0.75s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function MemorialPage() {
   const { memorial: m } = Route.useLoaderData();
   const navigate = Route.useNavigate();
@@ -75,8 +110,8 @@ function MemorialPage() {
   const years = formatYears(m.birth_date, m.passing_date);
   const narrative = m.language === "es" ? m.narrative_es : m.narrative_en;
   const generating = m.status === "generating" || !narrative;
+  const paragraphs = (narrative || "").split(/\n\n+/).filter(Boolean);
 
-  // Poll loader for completion while generating
   useEffect(() => {
     if (!generating) return;
     const id = setInterval(() => {
@@ -90,88 +125,132 @@ function MemorialPage() {
   }, [generating, m.memorial_id, navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-candlelight">
+    <div className="min-h-screen flex flex-col memorial-page-bg grain">
       <SiteHeader />
-      <article className="flex-1 max-w-3xl w-full mx-auto px-6 py-12 md:py-20">
-        {/* Portrait */}
-        <div className="text-center">
-          {m.portrait_url ? (
-            <div className="mx-auto w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden portrait-vignette shadow-warm">
-              <img src={m.portrait_url} alt={m.full_name} className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="mx-auto w-48 h-48 md:w-56 md:h-56 rounded-full bg-muted shadow-warm" />
-          )}
-          <div className="text-xs tracking-[0.3em] uppercase text-accent mt-8">In loving memory</div>
-          <h1 className="mt-3 font-display text-4xl md:text-5xl leading-tight">{display}</h1>
-          {years && <div className="mt-2 text-muted-foreground font-serif">{years}</div>}
-        </div>
 
-        {/* Narrative */}
-        <div className="mt-16 max-w-2xl mx-auto">
-          {generating && !narrative ? (
+      <article className="flex-1 w-full">
+        {/* ── Hero ── */}
+        <header className="relative flex flex-col items-center pt-16 pb-20 px-6 overflow-hidden">
+          {/* warm ambient glow behind portrait */}
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
+            style={{
+              background: "radial-gradient(ellipse at center, color-mix(in oklab, var(--gold) 22%, transparent) 0%, transparent 70%)",
+            }}
+          />
+
+          {/* Portrait */}
+          <div className="relative z-10">
+            {m.portrait_url ? (
+              <div className="portrait-hero">
+                <img
+                  src={m.portrait_url}
+                  alt={m.full_name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="portrait-hero-vignette" />
+              </div>
+            ) : (
+              <div className="portrait-hero bg-muted" />
+            )}
+          </div>
+
+          {/* Name block */}
+          <div className="relative z-10 text-center mt-10">
+            <p className="memorial-eyebrow">In Loving Memory</p>
+            <h1 className="font-display memorial-name mt-3">{display}</h1>
+            {years && (
+              <p className="mt-3 font-serif text-lg italic text-muted-foreground tracking-wide">
+                {years}
+              </p>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="relative z-10 mt-10 flex items-center gap-4 w-full max-w-xs">
+            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            <span className="text-accent text-lg">✦</span>
+            <span className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
+          </div>
+        </header>
+
+        {/* ── Narrative ── */}
+        <section className="max-w-2xl mx-auto px-6 pb-20">
+          {generating ? (
             <GeneratingState />
           ) : (
-            <div className="font-serif text-lg leading-relaxed text-foreground/90 space-y-5 first-letter:font-display first-letter:text-5xl first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-accent">
-              {(narrative || "").split(/\n\n+/).map((p: string, i: number) => (
-                <p key={i}>{p}</p>
+            <div className="space-y-6">
+              {paragraphs.map((p, i) => (
+                <FadeUp key={i} delay={i * 80}>
+                  <p
+                    className={[
+                      "font-serif text-lg md:text-xl leading-[1.85] text-foreground/90",
+                      i === 0 ? "first-paragraph" : "",
+                    ].join(" ")}
+                  >
+                    {p}
+                  </p>
+                </FadeUp>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Music */}
+        {/* ── Music ── */}
         {m.music_links && m.music_links.length > 0 && (
-          <MusicSection links={m.music_links as Array<{ url: string; title?: string }>} />
+          <FadeUp className="max-w-2xl mx-auto px-6 pb-20">
+            <MusicSection links={m.music_links as Array<{ url: string; title?: string }>} />
+          </FadeUp>
         )}
 
-        {/* Quick facts */}
+        {/* ── Facts ── */}
         {(m.hometown || m.loves || m.catchphrase) && (
-          <div className="mt-16 max-w-2xl mx-auto grid sm:grid-cols-3 gap-4">
-            {m.hometown && (
-              <Fact label="From" value={m.hometown} />
-            )}
-            {m.loves && (
-              <Fact label="Loved" value={m.loves.split(",").slice(0, 2).join(", ")} />
-            )}
-            {m.catchphrase && (
-              <Fact label="Always said" value={`"${m.catchphrase}"`} />
-            )}
-          </div>
+          <FadeUp className="max-w-2xl mx-auto px-6 pb-20">
+            <div className="grid sm:grid-cols-3 gap-4">
+              {m.hometown && <Fact label="From" value={m.hometown} />}
+              {m.loves && <Fact label="Loved" value={m.loves.split(",").slice(0, 2).join(", ")} />}
+              {m.catchphrase && <Fact label="Always said" value={`"${m.catchphrase}"`} />}
+            </div>
+          </FadeUp>
         )}
 
-        {/* Share / QR */}
-        <div className="mt-20 max-w-md mx-auto rounded-2xl border border-border bg-card p-8 text-center">
-          <div className="text-xs tracking-[0.3em] uppercase text-accent mb-4">Share this memorial</div>
-          {m.qr_png_url ? (
-            <img
-              src={m.qr_png_url}
-              alt={`QR code for ${m.full_name}`}
-              className="mx-auto w-32 h-32 rounded-lg border border-border"
-            />
-          ) : (
-            <div className="mx-auto w-32 h-32 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
-              QR generating…
+        {/* ── QR / Share ── */}
+        <FadeUp className="max-w-sm mx-auto px-6 pb-24">
+          <div className="keepsake-card text-center">
+            <p className="memorial-eyebrow mb-5">Share this memorial</p>
+            {m.qr_png_url ? (
+              <img
+                src={m.qr_png_url}
+                alt={`QR code for ${m.full_name}`}
+                className="mx-auto w-36 h-36 rounded-lg border border-border/50"
+              />
+            ) : (
+              <div className="mx-auto w-36 h-36 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                QR generating…
+              </div>
+            )}
+            <p className="mt-4 text-sm text-muted-foreground font-serif italic">
+              Scan to share with family
+            </p>
+            <div className="mt-5 text-[11px] text-muted-foreground/70 border-t border-border/60 pt-4 tracking-wide">
+              foreverhere.app/remember/{m.memorial_id}
             </div>
-          )}
-          <p className="mt-4 text-sm text-muted-foreground">Scan to share with family</p>
-          <div className="mt-6 text-xs text-muted-foreground border-t border-border pt-4">
-            foreverhere.app/remember/{m.memorial_id}
           </div>
-        </div>
+        </FadeUp>
 
-        {/* Footer note */}
-        <div className="mt-12 text-center text-sm text-muted-foreground">
+        {/* ── Footer note ── */}
+        <div className="pb-12 text-center text-sm text-muted-foreground">
           {m.creator_relationship && (
-            <p>
-              Remembered by <span className="italic">{m.creator_relationship}</span>
+            <p className="font-serif italic">
+              Remembered by {m.creator_relationship}
             </p>
           )}
-          <Link to="/" className="mt-4 inline-block hover:text-foreground transition">
+          <Link to="/" className="mt-4 inline-block hover:text-foreground transition text-xs tracking-widest uppercase">
             Forever Here — Create your own ↗
           </Link>
         </div>
       </article>
+
       <SiteFooter />
     </div>
   );
@@ -179,9 +258,9 @@ function MemorialPage() {
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card/60 p-4">
-      <div className="text-[10px] tracking-[0.2em] uppercase text-accent">{label}</div>
-      <div className="mt-1.5 text-sm text-foreground font-serif">{value}</div>
+    <div className="rounded-2xl border border-border/70 bg-card/50 backdrop-blur-sm p-5">
+      <div className="memorial-eyebrow mb-2">{label}</div>
+      <div className="text-sm text-foreground font-serif leading-snug">{value}</div>
     </div>
   );
 }
@@ -202,7 +281,6 @@ function getSpotifyEmbedUrl(url: string): string | null {
   try {
     const p = new URL(url);
     if (!p.hostname.includes("spotify.com")) return null;
-    // /track/ID → /embed/track/ID
     return `https://open.spotify.com/embed${p.pathname}`;
   } catch {
     return null;
@@ -211,8 +289,8 @@ function getSpotifyEmbedUrl(url: string): string | null {
 
 function MusicSection({ links }: { links: Array<{ url: string; title?: string }> }) {
   return (
-    <div className="mt-16 max-w-2xl mx-auto">
-      <div className="text-xs tracking-[0.3em] uppercase text-accent mb-6">Their music</div>
+    <div>
+      <p className="memorial-eyebrow mb-6">Their music</p>
       <div className="space-y-4">
         {links.map((link, i) => {
           let platform = "other";
@@ -228,9 +306,9 @@ function MusicSection({ links }: { links: Array<{ url: string; title?: string }>
             const embedUrl = getYouTubeEmbedUrl(link.url);
             if (embedUrl) {
               return (
-                <div key={i} className="rounded-xl overflow-hidden border border-border">
+                <div key={i} className="rounded-2xl overflow-hidden border border-border/70">
                   {link.title && (
-                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card border-b border-border">
+                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card/70 border-b border-border/50 font-serif italic">
                       {link.title}
                     </div>
                   )}
@@ -250,9 +328,9 @@ function MusicSection({ links }: { links: Array<{ url: string; title?: string }>
             const embedUrl = getSpotifyEmbedUrl(link.url);
             if (embedUrl) {
               return (
-                <div key={i} className="rounded-xl overflow-hidden border border-border">
+                <div key={i} className="rounded-2xl overflow-hidden border border-border/70">
                   {link.title && (
-                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card border-b border-border">
+                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card/70 border-b border-border/50 font-serif italic">
                       {link.title}
                     </div>
                   )}
@@ -269,7 +347,6 @@ function MusicSection({ links }: { links: Array<{ url: string; title?: string }>
             }
           }
 
-          // Apple Music, SoundCloud, or fallback link card
           const platformLabel: Record<string, string> = {
             "apple-music": "Apple Music",
             soundcloud: "SoundCloud",
@@ -281,13 +358,11 @@ function MusicSection({ links }: { links: Array<{ url: string; title?: string }>
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:border-accent/50 transition group"
+              className="flex items-center gap-4 rounded-2xl border border-border/70 bg-card/50 p-4 hover:border-accent/50 transition group"
             >
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] tracking-widest uppercase text-accent mb-1">
-                  {platformLabel[platform] ?? "Listen"}
-                </div>
-                <div className="text-sm text-foreground truncate font-serif">
+                <div className="memorial-eyebrow mb-1">{platformLabel[platform] ?? "Listen"}</div>
+                <div className="text-sm text-foreground truncate font-serif italic">
                   {link.title || link.url}
                 </div>
               </div>
@@ -302,12 +377,12 @@ function MusicSection({ links }: { links: Array<{ url: string; title?: string }>
 
 function GeneratingState() {
   return (
-    <div className="text-center py-10">
+    <div className="text-center py-16">
       <div className="inline-flex items-center gap-3 text-muted-foreground">
         <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-        <span className="font-serif italic">Their story is being written…</span>
+        <span className="font-serif italic text-lg">Their story is being written…</span>
       </div>
-      <p className="mt-4 text-sm text-muted-foreground max-w-sm mx-auto">
+      <p className="mt-5 text-sm text-muted-foreground max-w-sm mx-auto font-serif">
         This usually takes 10–20 seconds. The page will refresh automatically.
       </p>
     </div>

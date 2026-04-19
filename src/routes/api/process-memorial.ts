@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { processMemorial } from "@/lib/memorial-pipeline.functions";
+import { runMemorialPipeline } from "@/lib/memorial-pipeline.core";
 
 export const Route = createFileRoute("/api/process-memorial")({
   server: {
@@ -10,10 +10,14 @@ export const Route = createFileRoute("/api/process-memorial")({
           if (!body?.memorialId) {
             return Response.json({ error: "memorialId required" }, { status: 400 });
           }
-          const result = await processMemorial({ data: { memorialId: body.memorialId } });
+          const result = await runMemorialPipeline(body.memorialId);
+          if (!result.ok && result.error) {
+            console.error("Memorial pipeline error:", result.error);
+            return Response.json({ error: result.error }, { status: 500 });
+          }
           return Response.json(result);
         } catch (e) {
-          console.error("process-memorial error", e);
+          console.error("process-memorial unhandled error", e);
           return Response.json(
             { error: e instanceof Error ? e.message : "Unknown error" },
             { status: 500 }

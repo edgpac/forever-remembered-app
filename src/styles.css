@@ -174,4 +174,106 @@
       radial-gradient(ellipse 60% 40% at 50% 100%, color-mix(in oklab, var(--gold) 18%, transparent), transparent 60%),
       linear-gradient(180deg, var(--navy-3), var(--navy));
   }
+
+  /* ── Memorial page ── */
+
+  /* Warm parchment background with subtle linen texture */
+  .memorial-page-bg {
+    background:
+      radial-gradient(ellipse 100% 50% at 50% 0%, color-mix(in oklab, var(--gold) 12%, transparent), transparent 60%),
+      linear-gradient(180deg,
+        oklch(98% 0.015 80) 0%,
+        oklch(97% 0.012 85) 40%,
+        oklch(96% 0.01 80) 100%
+      );
+    background-attachment: fixed;
+  }
+
+  /* Grain/noise overlay — applied to .grain elements */
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.028;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px 180px;
+  }
+
+  /* Large oval portrait hero */
+  .portrait-hero {
+    width: 260px;
+    height: 320px;
+    border-radius: 9999px / 160px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--gold) 30%, transparent),
+      0 0 0 6px color-mix(in oklab, var(--gold) 10%, transparent),
+      0 20px 60px -10px rgba(0,0,0,0.22),
+      0 4px 12px rgba(0,0,0,0.1);
+  }
+  @media (min-width: 768px) {
+    .portrait-hero {
+      width: 320px;
+      height: 400px;
+    }
+  }
+
+  .portrait-hero-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 45%,
+      rgba(0, 0, 0, 0.45) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Dramatic serif name */
+  .memorial-name {
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--color-foreground);
+  }
+
+  /* Eyebrow label — small caps gold */
+  .memorial-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    font-family: var(--font-sans);
+    font-weight: 600;
+  }
+
+  /* Keepsake card — QR section */
+  .keepsake-card {
+    background: oklch(99.5% 0.008 80);
+    border: 1px solid color-mix(in oklab, var(--gold) 30%, transparent);
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
+    box-shadow:
+      0 1px 0 color-mix(in oklab, var(--gold) 20%, transparent),
+      0 4px 24px -4px rgba(0,0,0,0.08);
+  }
+
+  /* Drop-cap on first narrative paragraph */
+  .first-paragraph::first-letter {
+    font-family: var(--font-display);
+    font-size: 4.5rem;
+    line-height: 0.82;
+    float: left;
+    margin-right: 0.1em;
+    margin-top: 0.06em;
+    color: var(--color-accent);
+    font-weight: 700;
+  }
 }
