@@ -1,0 +1,177 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  @font-face {
+    font-family: "Playfair Display";
+    src: url("https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQ.woff2") format("woff2");
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Playfair Display";
+    src: url("https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQ.woff2") format("woff2");
+    font-weight: 400 900;
+    font-style: italic;
+    font-display: swap;
+  }
+}
+
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@400;500;600;700&display=swap");
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-navy-3: var(--navy-3);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-sky: var(--sky);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+
+  --shadow-warm: 0 1px 2px rgba(26, 26, 46, 0.04), 0 8px 24px -8px rgba(26, 26, 46, 0.12);
+  --shadow-glow: 0 0 60px -10px color-mix(in oklab, var(--gold) 35%, transparent);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Brand palette */
+  --navy: oklch(17% 0.05 240);
+  --navy-2: oklch(20% 0.07 240);
+  --navy-3: oklch(14% 0.04 240);
+  --gold: oklch(72% 0.12 80);
+  --gold-light: oklch(85% 0.1 80);
+  --sky: oklch(78% 0.06 220);
+  --cream: oklch(97% 0.012 90);
+  --ink: oklch(22% 0.03 260);
+
+  /* Semantic — light/cream theme */
+  --background: oklch(99% 0.005 90);
+  --foreground: var(--ink);
+  --card: oklch(100% 0 0);
+  --card-foreground: var(--ink);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: var(--ink);
+  --primary: var(--navy);
+  --primary-foreground: var(--cream);
+  --secondary: var(--cream);
+  --secondary-foreground: var(--navy);
+  --muted: oklch(95% 0.012 80);
+  --muted-foreground: oklch(48% 0.02 260);
+  --accent: var(--gold);
+  --accent-foreground: var(--navy);
+  --destructive: oklch(58% 0.22 25);
+  --destructive-foreground: oklch(99% 0 0);
+  --border: oklch(90% 0.015 80);
+  --input: oklch(92% 0.012 80);
+  --ring: var(--gold);
+}
+
+.dark {
+  --background: var(--navy-3);
+  --foreground: var(--cream);
+  --card: var(--navy);
+  --card-foreground: var(--cream);
+  --popover: var(--navy);
+  --popover-foreground: var(--cream);
+  --primary: var(--gold);
+  --primary-foreground: var(--navy);
+  --secondary: var(--navy-2);
+  --secondary-foreground: var(--cream);
+  --muted: var(--navy-2);
+  --muted-foreground: oklch(70% 0.02 240);
+  --accent: var(--gold);
+  --accent-foreground: var(--navy);
+  --border: oklch(30% 0.04 240);
+  --input: oklch(30% 0.04 240);
+  --ring: var(--gold);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    color: var(--color-foreground);
+  }
+
+  .font-display { font-family: var(--font-display); }
+  .font-serif { font-family: var(--font-serif); }
+
+  /* Soft vignette for portrait photos */
+  .portrait-vignette {
+    position: relative;
+    overflow: hidden;
+  }
+  .portrait-vignette::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      rgba(0, 0, 0, 0.35) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Subtle candlelight gradient */
+  .bg-candlelight {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklab, var(--gold) 14%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--cream), var(--background));
+  }
+
+  .bg-night {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 100%, color-mix(in oklab, var(--gold) 18%, transparent), transparent 60%),
+      linear-gradient(180deg, var(--navy-3), var(--navy));
+  }
+}
