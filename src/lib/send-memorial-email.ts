@@ -93,7 +93,7 @@ export async function sendMemorialEmail({
 </html>`;
 
   await resend.emails.send({
-    from: "Forever Here <memorial@qrheadstone.com>",
+    from: "Forever Here <memories@qrheadstone.com>",
     to: toEmail,
     subject: `${fullName}'s memorial is ready — Forever Here`,
     html,
