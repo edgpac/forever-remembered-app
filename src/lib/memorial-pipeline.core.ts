@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import QRCode from "qrcode";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { sendMemorialEmail } from "@/lib/send-memorial-email";
 
 function buildPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
   const isPet = m.subject_type === "pet";
@@ -194,6 +195,17 @@ export async function runMemorialPipeline(memorialId: string, siteOrigin?: strin
   if (updateErr) {
     await markError(memorialId);
     return { ok: false, error: updateErr.message };
+  }
+
+  try {
+    await sendMemorialEmail({
+      toEmail: memorial.creator_email,
+      fullName: memorial.full_name,
+      memorialUrl,
+      qrPngUrl: qrPngUrl ?? null,
+    });
+  } catch (e) {
+    console.error("Email send failed (non-fatal)", e);
   }
 
   return { ok: true, qrPngUrl: qrPngUrl ?? undefined, memorialUrl };
