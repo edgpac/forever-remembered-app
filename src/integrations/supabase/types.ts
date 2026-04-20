@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       memorials: {
         Row: {
+          aura: string | null
           birth_date: string | null
           catchphrase: string | null
           created_at: string
@@ -52,6 +53,7 @@ export type Database = {
           want_people_to_know: string | null
         }
         Insert: {
+          aura?: string | null
           birth_date?: string | null
           catchphrase?: string | null
           created_at?: string
@@ -88,6 +90,7 @@ export type Database = {
           want_people_to_know?: string | null
         }
         Update: {
+          aura?: string | null
           birth_date?: string | null
           catchphrase?: string | null
           created_at?: string
@@ -122,6 +125,30 @@ export type Database = {
           updated_at?: string
           view_count?: number
           want_people_to_know?: string | null
+        }
+        Relationships: []
+      }
+      memorial_notes: {
+        Row: {
+          id: string
+          memorial_id: string
+          author_name: string
+          note_text: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          memorial_id: string
+          author_name: string
+          note_text: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          memorial_id?: string
+          author_name?: string
+          note_text?: string
+          created_at?: string
         }
         Relationships: []
       }

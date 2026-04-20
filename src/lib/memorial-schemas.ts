@@ -15,19 +15,20 @@ const musicLinkSchema = z.object({
 });
 
 export const step2Schema = z.object({
-  personality_words: z.string().max(200).optional().or(z.literal("")),
-  loves: z.string().max(500).optional().or(z.literal("")),
   occupation: z.string().max(300).optional().or(z.literal("")),
-  hometown: z.string().max(200).optional().or(z.literal("")),
-  strongest_memory: z.string().max(1000).optional().or(z.literal("")),
+  personality_words: z.string().max(200).optional().or(z.literal("")),
+  aura: z.string().max(300).optional().or(z.literal("")),
+  loves: z.string().max(500).optional().or(z.literal("")),
   catchphrase: z.string().max(200).optional().or(z.literal("")),
+  strongest_memory: z.string().max(1000).optional().or(z.literal("")),
+  want_people_to_know: z.string().max(500).optional().or(z.literal("")),
   music_links: z.array(musicLinkSchema).max(5).default([]),
 });
 
 export const step3Schema = z.object({
+  hometown: z.string().max(200).optional().or(z.literal("")),
   creator_relationship: z.string().max(100).optional().or(z.literal("")),
   miss_most: z.string().max(500).optional().or(z.literal("")),
-  want_people_to_know: z.string().max(500).optional().or(z.literal("")),
   language: z.enum(["en", "es", "both"]),
   creator_email: z.string().email("Please enter a valid email").max(320),
   confirm_passed: z.literal(true, { message: "Please confirm" }),

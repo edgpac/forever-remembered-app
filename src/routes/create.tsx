@@ -31,7 +31,7 @@ const STEPS = [
 ];
 const STEP_SCHEMAS = [step1Schema, step2Schema, step3Schema];
 
-// ─── MultiChoice ────────────────────────────────────────────────────────────
+// ─── MultiChoice ─────────────────────────────────────────────────────────────
 
 function MultiChoice({
   options,
@@ -93,7 +93,7 @@ function MultiChoice({
           type="text"
           value={otherMode ? value : ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+          className={inputCls}
           placeholder={placeholder}
           autoFocus
         />
@@ -102,10 +102,11 @@ function MultiChoice({
   );
 }
 
-// ─── Live Preview ────────────────────────────────────────────────────────────
+// ─── Live Preview ─────────────────────────────────────────────────────────────
 
 function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
   const v = form.watch();
+  const isPet = v.subject_type === "pet";
   const display = v.full_name
     ? v.nickname
       ? `${v.full_name} "${v.nickname}"`
@@ -124,9 +125,7 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
   return (
     <div className="hidden lg:block">
       <div className="sticky top-8">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-4">
-          Preview
-        </div>
+        <div className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-4">Preview</div>
         <div className="rounded-2xl border border-border bg-card shadow-warm overflow-hidden">
           {/* Portrait */}
           <div className="bg-candlelight px-8 pt-8 pb-6 text-center">
@@ -136,17 +135,18 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
               </div>
             ) : (
               <div className="mx-auto w-28 h-28 rounded-full bg-muted/60 border-2 border-dashed border-border flex items-center justify-center">
-                <span className="text-2xl text-muted-foreground/40">
-                  {v.subject_type === "pet" ? "🐾" : "✦"}
-                </span>
+                <span className="text-2xl text-muted-foreground/40">{isPet ? "🐾" : "✦"}</span>
               </div>
             )}
             <div className="mt-5">
               <div className="text-[9px] tracking-[0.35em] uppercase text-accent">
-                In loving memory
+                {isPet ? "Forever in our hearts" : "In loving memory"}
               </div>
               {display ? (
-                <div className="mt-1 font-display text-xl leading-tight">{display}</div>
+                <div className="mt-1 font-display text-xl leading-tight">
+                  {isPet && <span className="mr-1 text-base">🐾</span>}
+                  {display}
+                </div>
               ) : (
                 <div className="mt-1 h-6 w-40 mx-auto rounded bg-muted/60 animate-pulse" />
               )}
@@ -169,18 +169,16 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
                 ))}
               </div>
             )}
+            {v.aura && (
+              <div className="space-y-0.5">
+                <div className="text-[9px] tracking-widest uppercase text-muted-foreground">Their energy</div>
+                <div className="text-xs text-foreground font-serif italic">"{v.aura.split(" — ")[0]}"</div>
+              </div>
+            )}
             {lovesChips.length > 0 && (
               <div className="space-y-0.5">
                 <div className="text-[9px] tracking-widest uppercase text-muted-foreground">Loved</div>
-                <div className="text-xs text-foreground font-serif">
-                  {lovesChips.join(" · ")}
-                </div>
-              </div>
-            )}
-            {v.hometown && (
-              <div className="space-y-0.5">
-                <div className="text-[9px] tracking-widest uppercase text-muted-foreground">From</div>
-                <div className="text-xs text-foreground font-serif">{v.hometown}</div>
+                <div className="text-xs text-foreground font-serif">{lovesChips.join(" · ")}</div>
               </div>
             )}
             {v.catchphrase && (
@@ -197,12 +195,14 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
 
           {/* Story placeholder */}
           <div className="px-6 pb-6 border-t border-border pt-4">
-            <div className="text-[9px] tracking-widest uppercase text-muted-foreground mb-2">
-              Their story
-            </div>
+            <div className="text-[9px] tracking-widest uppercase text-muted-foreground mb-2">Their story</div>
             <div className="space-y-1.5">
               {[100, 85, 92, 70].map((w, i) => (
-                <div key={i} className="h-2.5 rounded-full bg-muted/70 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 150}ms` }} />
+                <div
+                  key={i}
+                  className="h-2.5 rounded-full bg-muted/70 animate-pulse"
+                  style={{ width: `${w}%`, animationDelay: `${i * 150}ms` }}
+                />
               ))}
             </div>
             <div className="mt-3 text-[10px] text-muted-foreground text-center font-serif italic">
@@ -215,7 +215,7 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
   );
 }
 
-// ─── Main component ──────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 function CreateMemorial() {
   const navigate = useNavigate();
@@ -233,16 +233,17 @@ function CreateMemorial() {
       birth_date: "",
       passing_date: "",
       portrait_url: "",
-      personality_words: "",
-      loves: "",
       occupation: "",
-      hometown: "",
-      strongest_memory: "",
+      personality_words: "",
+      aura: "",
+      loves: "",
       catchphrase: "",
+      strongest_memory: "",
+      want_people_to_know: "",
       music_links: [],
+      hometown: "",
       creator_relationship: "",
       miss_most: "",
-      want_people_to_know: "",
       language: "en",
       creator_email: "",
       confirm_passed: false as unknown as true,
@@ -293,12 +294,13 @@ function CreateMemorial() {
         hometown: v.hometown || null,
         occupation: v.occupation || null,
         personality_words: v.personality_words || null,
+        aura: v.aura || null,
         loves: v.loves || null,
         strongest_memory: v.strongest_memory || null,
         catchphrase: v.catchphrase || null,
+        want_people_to_know: v.want_people_to_know || null,
         creator_relationship: v.creator_relationship || null,
         miss_most: v.miss_most || null,
-        want_people_to_know: v.want_people_to_know || null,
         language: v.language,
         theme: "classic",
         portrait_url: v.portrait_url || null,
@@ -327,7 +329,6 @@ function CreateMemorial() {
         <Progress step={step} />
 
         <div className="mt-10 grid lg:grid-cols-[1fr_360px] gap-12 items-start">
-          {/* Form column */}
           <div>
             <AnimatePresence mode="wait">
               <motion.div
@@ -372,7 +373,6 @@ function CreateMemorial() {
             </div>
           </div>
 
-          {/* Preview column */}
           <LivePreview form={form} />
         </div>
       </main>
@@ -380,7 +380,7 @@ function CreateMemorial() {
   );
 }
 
-// ─── Progress ────────────────────────────────────────────────────────────────
+// ─── Progress ─────────────────────────────────────────────────────────────────
 
 function Progress({ step }: { step: number }) {
   return (
@@ -399,7 +399,7 @@ function Progress({ step }: { step: number }) {
   );
 }
 
-// ─── Shared UI ───────────────────────────────────────────────────────────────
+// ─── Shared UI ────────────────────────────────────────────────────────────────
 
 function StepHeader({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
   return (
@@ -411,7 +411,17 @@ function StepHeader({ eyebrow, title, sub }: { eyebrow: string; title: string; s
   );
 }
 
-function Field({ label, hint, error, children }: { label: string; hint?: string; error?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-foreground">{label}</span>
@@ -422,24 +432,22 @@ function Field({ label, hint, error, children }: { label: string; hint?: string;
   );
 }
 
-const inputCls = "w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition";
+const inputCls =
+  "w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition";
 const textareaCls = inputCls + " min-h-[120px] resize-y font-serif leading-relaxed";
 
 type FormProp = { form: UseFormReturn<MemorialFormData> };
 
-// ─── Step 1: Who ─────────────────────────────────────────────────────────────
+// ─── Step 1: Who ──────────────────────────────────────────────────────────────
 
 function Step1({ form }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
   const subject = watch("subject_type");
   const portrait = watch("portrait_url");
+
   return (
     <div className="space-y-7">
-      <StepHeader
-        eyebrow="Step 01"
-        title="Who are we remembering?"
-        sub="Start with the simple things."
-      />
+      <StepHeader eyebrow="Step 01" title="Who are we remembering?" sub="Start with the simple things." />
 
       <div className="grid grid-cols-2 gap-3">
         {(["person", "pet"] as const).map((t) => (
@@ -451,7 +459,10 @@ function Step1({ form }: FormProp) {
               subject === t ? "border-accent bg-accent/10" : "border-border bg-card hover:border-accent/40"
             }`}
           >
-            <div className="font-display text-xl capitalize">{t}</div>
+            <div className="font-display text-xl capitalize">
+              {t === "pet" ? "🐾 " : ""}
+              {t === "person" ? "Person" : "Pet"}
+            </div>
             <div className="text-xs text-muted-foreground mt-1">
               {t === "person" ? "A loved one" : "A beloved companion"}
             </div>
@@ -462,11 +473,24 @@ function Step1({ form }: FormProp) {
       <PortraitUpload value={portrait} onChange={(url) => setValue("portrait_url", url)} />
 
       <Field label="Full name" error={errors.full_name?.message}>
-        <input type="text" {...register("full_name")} className={inputCls} placeholder="Marco Tamarín" />
+        <input
+          type="text"
+          {...register("full_name")}
+          className={inputCls}
+          placeholder={subject === "pet" ? "Luna García" : "Marco Tamarín"}
+        />
       </Field>
 
-      <Field label="Nickname" hint="What everyone called them" error={errors.nickname?.message}>
-        <input type="text" {...register("nickname")} className={inputCls} placeholder="Marquito" />
+      <Field
+        label={subject === "pet" ? "Nickname or call name" : "Nickname"}
+        hint="What everyone called them"
+      >
+        <input
+          type="text"
+          {...register("nickname")}
+          className={inputCls}
+          placeholder={subject === "pet" ? "Lunita" : "Marquito"}
+        />
       </Field>
 
       <div className="grid sm:grid-cols-2 gap-4">
@@ -481,13 +505,37 @@ function Step1({ form }: FormProp) {
   );
 }
 
-// ─── Step 2: Their story ─────────────────────────────────────────────────────
+// ─── Step 2: Their story (person) ─────────────────────────────────────────────
 
-const PERSONALITY_OPTIONS = ["Kind & warm", "Funny & playful", "Strong-willed", "Creative & curious", "Quiet & thoughtful"];
-const LOVES_OPTIONS = ["Family & community", "Nature & outdoors", "Food & cooking", "Music & the arts", "Sports & adventure"];
-const OCCUPATION_OPTIONS = ["Raised a family", "Ran a business", "Worked in healthcare", "Worked in education", "Artist or creative"];
+const PERSON_OCCUPATION_OPTIONS = [
+  "Raised a family",
+  "Ran a business",
+  "Worked in healthcare",
+  "Worked in education",
+  "Artist or creative",
+];
+const PERSON_PERSONALITY_OPTIONS = [
+  "Warm & nurturing",
+  "Funny & outgoing",
+  "Quiet & thoughtful",
+  "Strong & determined",
+];
+const PERSON_AURA_OPTIONS = [
+  "They lit up every room — magnetic and joyful",
+  "A calming presence — everyone felt safe around them",
+  "The quiet strength — steady, dependable, unshakeable",
+  "Pure mischief — always laughing, always up to something",
+  "A force of nature — passionate about everything they did",
+];
+const PERSON_LOVES_OPTIONS = [
+  "Family & friends",
+  "Music & arts",
+  "Sports & outdoors",
+  "Food & cooking",
+  "Travel",
+];
 
-function Step2({ form }: FormProp) {
+function PersonStep2({ form }: FormProp) {
   const { register, watch, setValue, control, formState: { errors } } = form;
   const { fields, append, remove } = useFieldArray({ control, name: "music_links" });
 
@@ -499,45 +547,48 @@ function Step2({ form }: FormProp) {
         sub="Tap a choice or write your own — there are no wrong answers."
       />
 
+      <Field label="What did they do for work or school?">
+        <MultiChoice
+          options={PERSON_OCCUPATION_OPTIONS}
+          value={watch("occupation") ?? ""}
+          onChange={(v) => setValue("occupation", v)}
+          placeholder="e.g. engineering student, helped at the family shop…"
+        />
+      </Field>
+
       <Field label="How would you describe their personality?">
-        <div className="mt-2">
-          <MultiChoice
-            options={PERSONALITY_OPTIONS}
-            value={watch("personality_words") ?? ""}
-            onChange={(v) => setValue("personality_words", v)}
-            placeholder="e.g. fierce, loyal, full of life…"
-          />
-        </div>
+        <MultiChoice
+          options={PERSON_PERSONALITY_OPTIONS}
+          value={watch("personality_words") ?? ""}
+          onChange={(v) => setValue("personality_words", v)}
+          placeholder="e.g. fierce, loyal, full of life…"
+        />
+      </Field>
+
+      <Field label="If you had to describe the energy they brought into a room, what was it?">
+        <MultiChoice
+          options={PERSON_AURA_OPTIONS}
+          value={watch("aura") ?? ""}
+          onChange={(v) => setValue("aura", v)}
+          placeholder="Describe their energy in your own words…"
+        />
       </Field>
 
       <Field label="What did they love most?">
-        <div className="mt-2">
-          <MultiChoice
-            options={LOVES_OPTIONS}
-            value={watch("loves") ?? ""}
-            onChange={(v) => setValue("loves", v)}
-            placeholder="e.g. long drives, cooking for everyone, quiet mornings…"
-          />
-        </div>
+        <MultiChoice
+          options={PERSON_LOVES_OPTIONS}
+          value={watch("loves") ?? ""}
+          onChange={(v) => setValue("loves", v)}
+          placeholder="e.g. long drives, cooking for everyone, quiet mornings…"
+        />
       </Field>
 
-      <Field label="What did they do?" hint="Their work, calling, or role in life">
-        <div className="mt-2">
-          <MultiChoice
-            options={OCCUPATION_OPTIONS}
-            value={watch("occupation") ?? ""}
-            onChange={(v) => setValue("occupation", v)}
-            placeholder="e.g. engineering student, helped at the family shop…"
-          />
-        </div>
-      </Field>
-
-      <Field label="Where were they from?" error={errors.hometown?.message}>
+      <Field label="A phrase or saying they always used" error={errors.catchphrase?.message}>
         <input
           type="text"
-          {...register("hometown")}
+          {...register("catchphrase")}
           className={inputCls}
-          placeholder="Tijuana, Mexico"
+          placeholder="Ya merito"
         />
       </Field>
 
@@ -553,12 +604,14 @@ function Step2({ form }: FormProp) {
         />
       </Field>
 
-      <Field label="A phrase or saying they always used" error={errors.catchphrase?.message}>
-        <input
-          type="text"
-          {...register("catchphrase")}
-          className={inputCls}
-          placeholder="Ya merito"
+      <Field
+        label="What would they want people who scan this to know?"
+        error={errors.want_people_to_know?.message}
+      >
+        <textarea
+          {...register("want_people_to_know")}
+          className={textareaCls}
+          placeholder="That love is the only thing worth working hard for."
         />
       </Field>
 
@@ -585,15 +638,31 @@ function Step2({ form }: FormProp) {
                   <span className="text-xs tracking-widest uppercase text-accent">
                     {url ? platform : `Song ${i + 1}`}
                   </span>
-                  <button type="button" onClick={() => remove(i)} className="text-xs text-muted-foreground hover:text-destructive transition">
+                  <button
+                    type="button"
+                    onClick={() => remove(i)}
+                    className="text-xs text-muted-foreground hover:text-destructive transition"
+                  >
                     Remove
                   </button>
                 </div>
-                <input type="url" {...register(`music_links.${i}.url`)} className={inputCls} placeholder="https://open.spotify.com/track/…" />
+                <input
+                  type="url"
+                  {...register(`music_links.${i}.url`)}
+                  className={inputCls}
+                  placeholder="https://open.spotify.com/track/…"
+                />
                 {errors.music_links?.[i]?.url && (
-                  <span className="block text-xs text-destructive">{errors.music_links[i]?.url?.message}</span>
+                  <span className="block text-xs text-destructive">
+                    {errors.music_links[i]?.url?.message}
+                  </span>
                 )}
-                <input type="text" {...register(`music_links.${i}.title`)} className={inputCls} placeholder="Song or playlist name (optional)" />
+                <input
+                  type="text"
+                  {...register(`music_links.${i}.title`)}
+                  className={inputCls}
+                  placeholder="Song or playlist name (optional)"
+                />
               </div>
             );
           })}
@@ -612,45 +681,166 @@ function Step2({ form }: FormProp) {
   );
 }
 
-// ─── Step 3: Finish ──────────────────────────────────────────────────────────
+// ─── Step 2: Their story (pet) ────────────────────────────────────────────────
 
-const RELATIONSHIP_OPTIONS = ["Their child", "Their spouse / partner", "Their sibling", "Their friend", "Their parent"];
+const PET_ANIMAL_OPTIONS = ["Dog", "Cat", "Bird", "Rabbit"];
+const PET_PERSONALITY_OPTIONS = [
+  "Playful & energetic",
+  "Calm & cuddly",
+  "Stubborn & hilarious",
+  "Gentle & sweet",
+];
+const PET_AURA_OPTIONS = [
+  "Pure chaos and joy — never a dull moment",
+  "A warm shadow — always by your side",
+  "The boss — ran the whole house",
+  "Gentle soul — soft, quiet, deeply comforting",
+];
+const PET_LOVES_OPTIONS = [
+  "Cuddles",
+  "Fetch & play",
+  "Sunbathing",
+  "Food",
+  "Car rides",
+];
+
+function PetStep2({ form }: FormProp) {
+  const { register, watch, setValue, formState: { errors } } = form;
+
+  return (
+    <div className="space-y-8">
+      <StepHeader
+        eyebrow="Step 02"
+        title="Tell us about them."
+        sub="Tap a choice or write your own — no wrong answers."
+      />
+
+      <Field label="What kind of animal were they?">
+        <MultiChoice
+          options={PET_ANIMAL_OPTIONS}
+          value={watch("occupation") ?? ""}
+          onChange={(v) => setValue("occupation", v)}
+          placeholder="e.g. Hamster, Guinea pig, Turtle…"
+        />
+      </Field>
+
+      <Field label="What was their personality like?">
+        <MultiChoice
+          options={PET_PERSONALITY_OPTIONS}
+          value={watch("personality_words") ?? ""}
+          onChange={(v) => setValue("personality_words", v)}
+          placeholder="e.g. wildly dramatic, fiercely loyal…"
+        />
+      </Field>
+
+      <Field label="What energy did they bring into your home?">
+        <MultiChoice
+          options={PET_AURA_OPTIONS}
+          value={watch("aura") ?? ""}
+          onChange={(v) => setValue("aura", v)}
+          placeholder="Describe their vibe in your own words…"
+        />
+      </Field>
+
+      <Field label="What did they love most?">
+        <MultiChoice
+          options={PET_LOVES_OPTIONS}
+          value={watch("loves") ?? ""}
+          onChange={(v) => setValue("loves", v)}
+          placeholder="e.g. chasing pigeons, your socks, the window perch…"
+        />
+      </Field>
+
+      <Field
+        label="A funny or memorable habit only you would know"
+        hint="The quirk that made them unmistakably themselves."
+        error={errors.catchphrase?.message}
+      >
+        <input
+          type="text"
+          {...register("catchphrase")}
+          className={inputCls}
+          placeholder="Always stole the warm spot on the couch the second you got up"
+        />
+      </Field>
+
+      <Field
+        label="Your favorite moment together"
+        hint="One specific, vivid memory."
+        error={errors.strongest_memory?.message}
+      >
+        <textarea
+          {...register("strongest_memory")}
+          className={textareaCls}
+          placeholder="The Sunday mornings she'd curl on my chest and we'd just breathe together…"
+        />
+      </Field>
+
+      <Field
+        label="What do you want people to know about them?"
+        error={errors.want_people_to_know?.message}
+      >
+        <textarea
+          {...register("want_people_to_know")}
+          className={textareaCls}
+          placeholder="That she chose us as much as we chose her."
+        />
+      </Field>
+    </div>
+  );
+}
+
+function Step2({ form }: FormProp) {
+  const subject = form.watch("subject_type");
+  return subject === "pet" ? <PetStep2 form={form} /> : <PersonStep2 form={form} />;
+}
+
+// ─── Step 3: Finish ───────────────────────────────────────────────────────────
+
+const RELATIONSHIP_OPTIONS = [
+  "Their child",
+  "Their spouse / partner",
+  "Their sibling",
+  "Their friend",
+  "Their parent",
+];
+const PET_RELATIONSHIP_OPTIONS = [
+  "Their human",
+  "Their family",
+  "Their best friend",
+  "Their caretaker",
+];
 
 function Step3({ form }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
   const language = watch("language");
+  const isPet = watch("subject_type") === "pet";
+
   return (
     <div className="space-y-8">
-      <StepHeader
-        eyebrow="Step 03"
-        title="You & final details."
-        sub="Almost done."
-      />
+      <StepHeader eyebrow="Step 03" title="You & final details." sub="Almost done." />
 
-      <Field label="Who are you to them?">
-        <div className="mt-2">
-          <MultiChoice
-            options={RELATIONSHIP_OPTIONS}
-            value={watch("creator_relationship") ?? ""}
-            onChange={(v) => setValue("creator_relationship", v)}
-            placeholder="e.g. their neighbour, their mentor…"
-          />
-        </div>
-      </Field>
-
-      <Field label="What do you miss most?" error={errors.miss_most?.message}>
-        <textarea
-          {...register("miss_most")}
-          className={textareaCls}
-          placeholder="The way he laughed at his own jokes before finishing them."
+      <Field label={isPet ? "Who are you to them?" : "Who are you to them?"}>
+        <MultiChoice
+          options={isPet ? PET_RELATIONSHIP_OPTIONS : RELATIONSHIP_OPTIONS}
+          value={watch("creator_relationship") ?? ""}
+          onChange={(v) => setValue("creator_relationship", v)}
+          placeholder={isPet ? "e.g. their forever person" : "e.g. their neighbour, their mentor…"}
         />
       </Field>
 
-      <Field label="What would they want people who scan this to know?" error={errors.want_people_to_know?.message}>
+      <Field
+        label={isPet ? "What do you miss most about them?" : "What do you miss most?"}
+        error={errors.miss_most?.message}
+      >
         <textarea
-          {...register("want_people_to_know")}
+          {...register("miss_most")}
           className={textareaCls}
-          placeholder="That love is the only thing worth working hard for."
+          placeholder={
+            isPet
+              ? "The sound of her paws on the floor when she heard me come home."
+              : "The way he laughed at his own jokes before finishing them."
+          }
         />
       </Field>
 
@@ -671,8 +861,17 @@ function Step3({ form }: FormProp) {
         </div>
       </Field>
 
-      <Field label="Your email" hint="We'll send the QR card here" error={errors.creator_email?.message}>
-        <input type="email" {...register("creator_email")} className={inputCls} placeholder="you@example.com" />
+      <Field
+        label="Your email"
+        hint="We'll send the QR card here"
+        error={errors.creator_email?.message}
+      >
+        <input
+          type="email"
+          {...register("creator_email")}
+          className={inputCls}
+          placeholder="you@example.com"
+        />
       </Field>
 
       <div className="space-y-3 pt-2">
@@ -685,7 +884,9 @@ function Step3({ form }: FormProp) {
           <span className="text-foreground">
             I confirm this memorial is for someone who has passed.
             {errors.confirm_passed?.message && (
-              <span className="block text-xs text-destructive mt-1">{errors.confirm_passed.message}</span>
+              <span className="block text-xs text-destructive mt-1">
+                {errors.confirm_passed.message}
+              </span>
             )}
           </span>
         </label>
@@ -698,7 +899,9 @@ function Step3({ form }: FormProp) {
           <span className="text-foreground">
             I understand this page is public and scannable by anyone with the QR code.
             {errors.confirm_public?.message && (
-              <span className="block text-xs text-destructive mt-1">{errors.confirm_public.message}</span>
+              <span className="block text-xs text-destructive mt-1">
+                {errors.confirm_public.message}
+              </span>
             )}
           </span>
         </label>

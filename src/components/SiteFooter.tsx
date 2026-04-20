@@ -29,7 +29,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Forever Here · Made with care
+        © {new Date().getFullYear()} Forever Here · Made with Love by Van Marr & Family
       </div>
     </footer>
   );

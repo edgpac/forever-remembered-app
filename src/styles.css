@@ -189,7 +189,7 @@
     background-attachment: fixed;
   }
 
-  /* Grain/noise overlay — applied to .grain elements */
+  /* Grain/noise overlay */
   .grain {
     position: relative;
   }
@@ -205,43 +205,63 @@
     background-size: 180px 180px;
   }
 
-  /* Large oval portrait hero */
-  .portrait-hero {
-    width: 260px;
-    height: 320px;
-    border-radius: 9999px / 160px;
-    overflow: hidden;
+  /* ── Full-width hero section ── */
+  .memorial-hero {
     position: relative;
-    box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--gold) 30%, transparent),
-      0 0 0 6px color-mix(in oklab, var(--gold) 10%, transparent),
-      0 20px 60px -10px rgba(0,0,0,0.22),
-      0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    overflow: hidden;
+    min-height: 400px;
+    max-height: 600px;
+    display: flex;
+    align-items: stretch;
   }
   @media (min-width: 768px) {
-    .portrait-hero {
-      width: 320px;
-      height: 400px;
+    .memorial-hero {
+      min-height: 520px;
     }
   }
 
-  .portrait-hero-vignette {
+  .memorial-hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
     position: absolute;
     inset: 0;
-    background: radial-gradient(
-      ellipse at center,
-      transparent 45%,
-      rgba(0, 0, 0, 0.45) 100%
-    );
-    pointer-events: none;
   }
 
-  /* Dramatic serif name */
-  .memorial-name {
-    font-size: clamp(2.4rem, 6vw, 4.5rem);
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-    color: var(--color-foreground);
+  .memorial-hero-placeholder {
+    background: linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--gold) 15%, var(--cream)) 0%,
+      var(--muted) 100%
+    );
+  }
+
+  .memorial-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.08) 0%,
+      rgba(0, 0, 0, 0.15) 40%,
+      rgba(0, 0, 0, 0.72) 100%
+    );
+  }
+
+  .memorial-hero-text {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    align-self: flex-end;
+    padding: 2.5rem 1.5rem 2.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  @media (min-width: 768px) {
+    .memorial-hero-text {
+      padding: 3rem 3rem 3.5rem;
+    }
   }
 
   /* Eyebrow label — small caps gold */
@@ -262,7 +282,7 @@
     padding: 2.5rem 2rem;
     box-shadow:
       0 1px 0 color-mix(in oklab, var(--gold) 20%, transparent),
-      0 4px 24px -4px rgba(0,0,0,0.08);
+      0 4px 24px -4px rgba(0, 0, 0, 0.08);
   }
 
   /* Drop-cap on first narrative paragraph */

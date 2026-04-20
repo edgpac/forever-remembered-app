@@ -6,26 +6,65 @@ import { formatYears } from "@/lib/memorial";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 
+type MemorialNote = {
+  id: string;
+  author_name: string;
+  note_text: string;
+  created_at: string;
+};
+
 const getMemorial = createServerFn({ method: "GET" })
   .inputValidator((data: { memorialId: string }) => data)
   .handler(async ({ data }) => {
     const { data: memorial, error } = await supabaseAdmin
       .from("memorials")
       .select(
-        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, loves, catchphrase, narrative_en, narrative_es, language, portrait_url, qr_png_url, creator_relationship, theme, music_links"
+        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, aura, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, want_people_to_know"
       )
       .eq("memorial_id", data.memorialId)
       .maybeSingle();
+
     if (error) throw new Error(error.message);
     if (!memorial) return null;
-    return memorial;
+
+    let notes: MemorialNote[] = [];
+    try {
+      const { data: notesData } = await (supabaseAdmin as ReturnType<typeof supabaseAdmin.from> extends never ? never : typeof supabaseAdmin)
+        .from("memorial_notes")
+        .select("id, author_name, note_text, created_at")
+        .eq("memorial_id", data.memorialId)
+        .order("created_at", { ascending: true })
+        .limit(50) as unknown as { data: MemorialNote[] | null };
+      notes = notesData ?? [];
+    } catch {
+      notes = [];
+    }
+
+    return { memorial, notes };
+  });
+
+const addNote = createServerFn({ method: "POST" })
+  .inputValidator((d: { memorialId: string; author_name: string; note_text: string }) => d)
+  .handler(async ({ data }) => {
+    const trimmedName = data.author_name.trim().slice(0, 100);
+    const trimmedText = data.note_text.trim().slice(0, 500);
+    if (!trimmedName || !trimmedText) throw new Error("Name and message are required");
+
+    const { data: note, error } = await supabaseAdmin
+      .from("memorial_notes")
+      .insert({ memorial_id: data.memorialId, author_name: trimmedName, note_text: trimmedText })
+      .select("id, author_name, note_text, created_at")
+      .single() as unknown as { data: MemorialNote | null; error: { message: string } | null };
+
+    if (error) throw new Error(error.message);
+    return note!;
   });
 
 export const Route = createFileRoute("/remember/$memorialId")({
   loader: async ({ params }) => {
-    const memorial = await getMemorial({ data: { memorialId: params.memorialId } });
-    if (!memorial) throw notFound();
-    return { memorial };
+    const result = await getMemorial({ data: { memorialId: params.memorialId } });
+    if (!result) throw notFound();
+    return result;
   },
   head: ({ loaderData }) => {
     const m = loaderData?.memorial;
@@ -56,10 +95,7 @@ export const Route = createFileRoute("/remember/$memorialId")({
           <p className="mt-3 text-muted-foreground">
             The link may be incorrect or the memorial may have been removed.
           </p>
-          <Link
-            to="/"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm"
-          >
+          <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm">
             Go home
           </Link>
         </div>
@@ -68,25 +104,33 @@ export const Route = createFileRoute("/remember/$memorialId")({
   ),
 });
 
+// ─── FadeUp ───────────────────────────────────────────────────────────────────
+
 function useFadeInOnScroll() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { threshold: 0.15 }
+      { threshold: 0.12 }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-
   return { ref, visible };
 }
 
-function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+function FadeUp({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   const { ref, visible } = useFadeInOnScroll();
   return (
     <div
@@ -103,14 +147,74 @@ function FadeUp({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+
+function HeroSection({
+  m,
+  display,
+  years,
+}: {
+  m: { portrait_url: string | null; subject_type: string };
+  display: string;
+  years: string;
+}) {
+  const isPet = m.subject_type === "pet";
+
+  return (
+    <div className="memorial-hero">
+      {m.portrait_url ? (
+        <img
+          src={m.portrait_url}
+          alt={display}
+          className="memorial-hero-img"
+        />
+      ) : (
+        <div className="memorial-hero-img memorial-hero-placeholder" />
+      )}
+
+      {/* Gradient overlay */}
+      <div className="memorial-hero-overlay" />
+
+      {/* Ambient top glow */}
+      <div
+        className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.25), transparent)",
+        }}
+      />
+
+      {/* Name & dates — bottom overlay */}
+      <div className="memorial-hero-text">
+        <p className="text-[11px] tracking-[0.35em] uppercase text-white/60 mb-2">
+          {isPet ? "Forever in our hearts" : "In Loving Memory"}
+        </p>
+        <h1 className="font-display text-white leading-tight" style={{ fontSize: "clamp(2.2rem, 6vw, 5rem)" }}>
+          {isPet && <span className="mr-2 text-[0.7em]">🐾</span>}
+          {display}
+        </h1>
+        {years && (
+          <p className="mt-2 font-serif italic text-white/60" style={{ fontSize: "clamp(0.95rem, 2vw, 1.2rem)" }}>
+            {years}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
 function MemorialPage() {
-  const { memorial: m } = Route.useLoaderData();
+  const { memorial: m, notes: initialNotes } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const display = m.nickname ? `${m.full_name} "${m.nickname}"` : m.full_name;
   const years = formatYears(m.birth_date, m.passing_date);
   const narrative = m.language === "es" ? m.narrative_es : m.narrative_en;
-  const generating = m.status === "generating" || !narrative;
+  const generating = m.status === "generating" || (!narrative && m.status !== "error");
   const paragraphs = (narrative || "").split(/\n\n+/).filter(Boolean);
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://foreverhere.app";
+  const memorialUrl = `${origin}/remember/${m.memorial_id}`;
 
   useEffect(() => {
     if (!generating) return;
@@ -129,65 +233,27 @@ function MemorialPage() {
       <SiteHeader />
 
       <article className="flex-1 w-full">
-        {/* ── Hero ── */}
-        <header className="relative flex flex-col items-center pt-16 pb-20 px-6 overflow-hidden">
-          {/* warm ambient glow behind portrait */}
-          <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
-            style={{
-              background: "radial-gradient(ellipse at center, color-mix(in oklab, var(--gold) 22%, transparent) 0%, transparent 70%)",
-            }}
-          />
+        {/* Hero */}
+        <HeroSection m={m} display={display} years={years} />
 
-          {/* Portrait */}
-          <div className="relative z-10">
-            {m.portrait_url ? (
-              <div className="portrait-hero">
-                <img
-                  src={m.portrait_url}
-                  alt={m.full_name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="portrait-hero-vignette" />
-              </div>
-            ) : (
-              <div className="portrait-hero bg-muted" />
-            )}
-          </div>
+        {/* Divider */}
+        <div className="flex items-center gap-4 max-w-xs mx-auto mt-12 px-6">
+          <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <span className="text-accent">{m.subject_type === "pet" ? "🐾" : "✦"}</span>
+          <span className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
+        </div>
 
-          {/* Name block */}
-          <div className="relative z-10 text-center mt-10">
-            <p className="memorial-eyebrow">In Loving Memory</p>
-            <h1 className="font-display memorial-name mt-3">{display}</h1>
-            {years && (
-              <p className="mt-3 font-serif text-lg italic text-muted-foreground tracking-wide">
-                {years}
-              </p>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="relative z-10 mt-10 flex items-center gap-4 w-full max-w-xs">
-            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-            <span className="text-accent text-lg">✦</span>
-            <span className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
-          </div>
-        </header>
-
-        {/* ── Narrative ── */}
-        <section className="max-w-2xl mx-auto px-6 pb-20">
-          {generating ? (
+        {/* Narrative */}
+        <section className="max-w-2xl mx-auto px-6 py-14">
+          {m.status === "error" ? (
+            <ErrorState />
+          ) : generating ? (
             <GeneratingState />
           ) : (
             <div className="space-y-6">
               {paragraphs.map((p, i) => (
                 <FadeUp key={i} delay={i * 80}>
-                  <p
-                    className={[
-                      "font-serif text-lg md:text-xl leading-[1.85] text-foreground/90",
-                      i === 0 ? "first-paragraph" : "",
-                    ].join(" ")}
-                  >
+                  <p className={`font-serif text-lg md:text-xl leading-[1.85] text-foreground/90 ${i === 0 ? "first-paragraph" : ""}`}>
                     {p}
                   </p>
                 </FadeUp>
@@ -196,54 +262,45 @@ function MemorialPage() {
           )}
         </section>
 
-        {/* ── Music ── */}
+        {/* Gallery */}
+        {m.gallery_urls && m.gallery_urls.length > 0 && (
+          <FadeUp className="max-w-3xl mx-auto px-6 pb-16">
+            <GallerySection urls={m.gallery_urls as string[]} name={m.full_name} />
+          </FadeUp>
+        )}
+
+        {/* Music */}
         {m.music_links && m.music_links.length > 0 && (
-          <FadeUp className="max-w-2xl mx-auto px-6 pb-20">
+          <FadeUp className="max-w-2xl mx-auto px-6 pb-16">
             <MusicSection links={m.music_links as Array<{ url: string; title?: string }>} />
           </FadeUp>
         )}
 
-        {/* ── Facts ── */}
-        {(m.hometown || m.loves || m.catchphrase) && (
-          <FadeUp className="max-w-2xl mx-auto px-6 pb-20">
-            <div className="grid sm:grid-cols-3 gap-4">
-              {m.hometown && <Fact label="From" value={m.hometown} />}
-              {m.loves && <Fact label="Loved" value={m.loves.split(",").slice(0, 2).join(", ")} />}
-              {m.catchphrase && <Fact label="Always said" value={`"${m.catchphrase}"`} />}
-            </div>
+        {/* Facts */}
+        {(m.hometown || m.loves || m.catchphrase || m.aura) && (
+          <FadeUp className="max-w-2xl mx-auto px-6 pb-16">
+            <FactsSection m={m} />
           </FadeUp>
         )}
 
-        {/* ── QR / Share ── */}
-        <FadeUp className="max-w-sm mx-auto px-6 pb-24">
-          <div className="keepsake-card text-center">
-            <p className="memorial-eyebrow mb-5">Share this memorial</p>
-            {m.qr_png_url ? (
-              <img
-                src={m.qr_png_url}
-                alt={`QR code for ${m.full_name}`}
-                className="mx-auto w-36 h-36 rounded-lg border border-border/50"
-              />
-            ) : (
-              <div className="mx-auto w-36 h-36 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                QR generating…
-              </div>
-            )}
-            <p className="mt-4 text-sm text-muted-foreground font-serif italic">
-              Scan to share with family
-            </p>
-            <div className="mt-5 text-[11px] text-muted-foreground/70 border-t border-border/60 pt-4 tracking-wide">
-              foreverhere.app/remember/{m.memorial_id}
-            </div>
-          </div>
+        {/* Leave a Memory */}
+        <FadeUp className="max-w-2xl mx-auto px-6 pb-16">
+          <LeaveMemorySection
+            memorialId={m.memorial_id}
+            initialNotes={initialNotes}
+            isPet={m.subject_type === "pet"}
+          />
         </FadeUp>
 
-        {/* ── Footer note ── */}
+        {/* QR / Share */}
+        <FadeUp className="max-w-sm mx-auto px-6 pb-24">
+          <QRSection m={m} display={display} years={years} memorialUrl={memorialUrl} />
+        </FadeUp>
+
+        {/* Footer note */}
         <div className="pb-12 text-center text-sm text-muted-foreground">
           {m.creator_relationship && (
-            <p className="font-serif italic">
-              Remembered by {m.creator_relationship}
-            </p>
+            <p className="font-serif italic">Remembered by {m.creator_relationship}</p>
           )}
           <Link to="/" className="mt-4 inline-block hover:text-foreground transition text-xs tracking-widest uppercase">
             Forever Here — Create your own ↗
@@ -256,25 +313,65 @@ function MemorialPage() {
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+// ─── Gallery ──────────────────────────────────────────────────────────────────
+
+function GallerySection({ urls, name }: { urls: string[]; name: string }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-card/50 backdrop-blur-sm p-5">
-      <div className="memorial-eyebrow mb-2">{label}</div>
-      <div className="text-sm text-foreground font-serif leading-snug">{value}</div>
+    <div>
+      <p className="memorial-eyebrow mb-5">Photos</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {urls.map((url, i) => (
+          <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
+            <img
+              src={url}
+              alt={`${name} — photo ${i + 1}`}
+              className="w-full h-full object-cover hover:scale-105 transition duration-500"
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
+// ─── Facts ────────────────────────────────────────────────────────────────────
+
+function FactsSection({ m }: { m: Record<string, unknown> }) {
+  const isPet = m.subject_type === "pet";
+  const facts: { label: string; value: string }[] = [];
+
+  if (m.hometown) facts.push({ label: "From", value: m.hometown as string });
+  if (m.occupation && !isPet) facts.push({ label: "Did", value: m.occupation as string });
+  if (m.occupation && isPet) facts.push({ label: "Kind", value: m.occupation as string });
+  if (m.loves) facts.push({ label: "Loved", value: (m.loves as string).split(",").slice(0, 2).join(", ") });
+  if (m.catchphrase) facts.push({ label: isPet ? "Habit" : "Always said", value: `"${m.catchphrase}"` });
+  if (m.aura) facts.push({ label: "Energy", value: (m.aura as string).split(" — ")[0] });
+
+  if (facts.length === 0) return null;
+
+  return (
+    <div>
+      <p className="memorial-eyebrow mb-5">A few things to know</p>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {facts.map((f) => (
+          <div key={f.label} className="rounded-2xl border border-border/70 bg-card/50 backdrop-blur-sm p-5">
+            <div className="memorial-eyebrow mb-1.5">{f.label}</div>
+            <div className="text-sm text-foreground font-serif leading-snug">{f.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Music ────────────────────────────────────────────────────────────────────
+
 function getYouTubeEmbedUrl(url: string): string | null {
   try {
     const p = new URL(url);
-    const id = p.hostname.includes("youtu.be")
-      ? p.pathname.slice(1)
-      : p.searchParams.get("v");
+    const id = p.hostname.includes("youtu.be") ? p.pathname.slice(1) : p.searchParams.get("v");
     return id ? `https://www.youtube.com/embed/${id}` : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function getSpotifyEmbedUrl(url: string): string | null {
@@ -282,15 +379,13 @@ function getSpotifyEmbedUrl(url: string): string | null {
     const p = new URL(url);
     if (!p.hostname.includes("spotify.com")) return null;
     return `https://open.spotify.com/embed${p.pathname}`;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function MusicSection({ links }: { links: Array<{ url: string; title?: string }> }) {
   return (
     <div>
-      <p className="memorial-eyebrow mb-6">Their music</p>
+      <p className="memorial-eyebrow mb-5">Their music</p>
       <div className="space-y-4">
         {links.map((link, i) => {
           let platform = "other";
@@ -304,67 +399,30 @@ function MusicSection({ links }: { links: Array<{ url: string; title?: string }>
 
           if (platform === "youtube") {
             const embedUrl = getYouTubeEmbedUrl(link.url);
-            if (embedUrl) {
-              return (
-                <div key={i} className="rounded-2xl overflow-hidden border border-border/70">
-                  {link.title && (
-                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card/70 border-b border-border/50 font-serif italic">
-                      {link.title}
-                    </div>
-                  )}
-                  <iframe
-                    src={embedUrl}
-                    title={link.title || `Song ${i + 1}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full aspect-video"
-                  />
-                </div>
-              );
-            }
+            if (embedUrl) return (
+              <div key={i} className="rounded-2xl overflow-hidden border border-border/70">
+                {link.title && <div className="px-4 py-2 text-xs text-muted-foreground bg-card/70 border-b border-border/50 font-serif italic">{link.title}</div>}
+                <iframe src={embedUrl} title={link.title || `Song ${i + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full aspect-video" />
+              </div>
+            );
           }
 
           if (platform === "spotify") {
             const embedUrl = getSpotifyEmbedUrl(link.url);
-            if (embedUrl) {
-              return (
-                <div key={i} className="rounded-2xl overflow-hidden border border-border/70">
-                  {link.title && (
-                    <div className="px-4 py-2 text-xs text-muted-foreground bg-card/70 border-b border-border/50 font-serif italic">
-                      {link.title}
-                    </div>
-                  )}
-                  <iframe
-                    src={embedUrl}
-                    title={link.title || `Song ${i + 1}`}
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    className="w-full"
-                    height="152"
-                  />
-                </div>
-              );
-            }
+            if (embedUrl) return (
+              <div key={i} className="rounded-2xl overflow-hidden border border-border/70">
+                {link.title && <div className="px-4 py-2 text-xs text-muted-foreground bg-card/70 border-b border-border/50 font-serif italic">{link.title}</div>}
+                <iframe src={embedUrl} title={link.title || `Song ${i + 1}`} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" className="w-full" height="152" />
+              </div>
+            );
           }
 
-          const platformLabel: Record<string, string> = {
-            "apple-music": "Apple Music",
-            soundcloud: "SoundCloud",
-            other: "Listen",
-          };
+          const platformLabel: Record<string, string> = { "apple-music": "Apple Music", soundcloud: "SoundCloud", other: "Listen" };
           return (
-            <a
-              key={i}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-4 rounded-2xl border border-border/70 bg-card/50 p-4 hover:border-accent/50 transition group"
-            >
+            <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 rounded-2xl border border-border/70 bg-card/50 p-4 hover:border-accent/50 transition group">
               <div className="flex-1 min-w-0">
                 <div className="memorial-eyebrow mb-1">{platformLabel[platform] ?? "Listen"}</div>
-                <div className="text-sm text-foreground truncate font-serif italic">
-                  {link.title || link.url}
-                </div>
+                <div className="text-sm text-foreground truncate font-serif italic">{link.title || link.url}</div>
               </div>
               <span className="text-muted-foreground group-hover:text-foreground transition text-lg">↗</span>
             </a>
@@ -375,6 +433,282 @@ function MusicSection({ links }: { links: Array<{ url: string; title?: string }>
   );
 }
 
+// ─── Leave a Memory ───────────────────────────────────────────────────────────
+
+function LeaveMemorySection({
+  memorialId,
+  initialNotes,
+  isPet,
+}: {
+  memorialId: string;
+  initialNotes: MemorialNote[];
+  isPet: boolean;
+}) {
+  const [notes, setNotes] = useState<MemorialNote[]>(initialNotes);
+  const [name, setName] = useState("");
+  const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !text.trim()) return;
+    setSubmitting(true);
+    setNoteError(null);
+    try {
+      const note = await addNote({ data: { memorialId, author_name: name, note_text: text } });
+      setNotes((prev) => [...prev, note]);
+      setName("");
+      setText("");
+      setSubmitted(true);
+    } catch (err) {
+      setNoteError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-4 mb-8">
+        <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <p className="memorial-eyebrow">Leave a memory</p>
+        <span className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
+      </div>
+
+      {submitted ? (
+        <div className="text-center py-4">
+          <p className="font-serif italic text-foreground/70 text-lg">Thank you for sharing that memory.</p>
+          <button
+            onClick={() => setSubmitted(false)}
+            className="mt-4 text-xs tracking-widest uppercase text-accent hover:text-foreground transition"
+          >
+            Leave another
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            maxLength={100}
+            className="w-full rounded-xl border border-border bg-card/60 px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition text-sm"
+          />
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={isPet ? "Share a moment or memory you hold dear…" : "Share a memory, a message, or something you'd like them to know…"}
+            maxLength={500}
+            rows={4}
+            className="w-full rounded-xl border border-border bg-card/60 px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition text-sm font-serif leading-relaxed resize-none"
+          />
+          {noteError && <p className="text-xs text-destructive">{noteError}</p>}
+          <button
+            type="submit"
+            disabled={submitting || !name.trim() || !text.trim()}
+            className="rounded-full border-2 border-accent bg-accent/10 text-foreground px-6 py-2.5 text-sm font-medium hover:bg-accent/20 disabled:opacity-40 transition"
+          >
+            {submitting ? "Sending…" : "Leave a memory"}
+          </button>
+        </form>
+      )}
+
+      {notes.length > 0 && (
+        <div className="mt-10 space-y-4">
+          {notes.map((note) => (
+            <div key={note.id} className="rounded-2xl border border-border/60 bg-card/40 p-5">
+              <p className="font-serif italic text-foreground/80 leading-relaxed">"{note.note_text}"</p>
+              <p className="text-xs text-muted-foreground mt-3 tracking-wide">— {note.author_name}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── QR / Share ───────────────────────────────────────────────────────────────
+
+function QRSection({
+  m,
+  display,
+  years,
+  memorialUrl,
+}: {
+  m: { qr_png_url: string | null; memorial_id: string; full_name: string };
+  display: string;
+  years: string;
+  memorialUrl: string;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleShare() {
+    const shareData = {
+      title: `${display} — Forever Here`,
+      text: `A memorial page for ${display}.`,
+      url: memorialUrl,
+    };
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+    } catch {
+      // user cancelled or share failed — fall through to clipboard
+    }
+    try {
+      await navigator.clipboard.writeText(memorialUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      // clipboard also unavailable — nothing to do
+    }
+  }
+
+  function handlePrint() {
+    const yearsHtml = years ? `<p class="years">${years}</p>` : "";
+    const qrHtml = m.qr_png_url ? `<img class="qr" src="${m.qr_png_url}" alt="QR Code" />` : "";
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>QR Card — ${display}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    @page { size: 4in 6in; margin: 0.4in; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: #fff;
+      color: #1a1a1a;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 24px;
+      gap: 0;
+    }
+    .eyebrow {
+      font-family: 'Lora', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #b8860b;
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .years {
+      font-style: italic;
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 20px;
+    }
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: #d4af70;
+      margin: 0 auto 20px;
+    }
+    .qr {
+      width: 180px;
+      height: 180px;
+      display: block;
+      margin: 0 auto 16px;
+    }
+    .url {
+      font-size: 9px;
+      color: #aaa;
+      letter-spacing: 0.04em;
+      margin-top: 12px;
+    }
+    @media print {
+      body { padding: 0; min-height: unset; }
+    }
+  </style>
+</head>
+<body>
+  <p class="eyebrow">In Loving Memory</p>
+  <h1>${display}</h1>
+  ${yearsHtml}
+  <div class="divider"></div>
+  ${qrHtml}
+  <p class="url">${memorialUrl}</p>
+  <script>window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 300); });<\/script>
+</body>
+</html>`;
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    }
+  }
+
+  return (
+    <div className="keepsake-card text-center">
+      <p className="memorial-eyebrow mb-5">Share this memorial</p>
+
+      {m.qr_png_url ? (
+        <img
+          src={m.qr_png_url}
+          alt={`QR code for ${m.full_name}`}
+          className="mx-auto w-36 h-36 rounded-lg border border-border/50"
+        />
+      ) : (
+        <div className="mx-auto w-36 h-36 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
+          QR generating…
+        </div>
+      )}
+
+      <p className="mt-4 text-sm text-muted-foreground font-serif italic">
+        Scan to share with family
+      </p>
+
+      <div className="mt-5 text-[11px] text-muted-foreground/60 border-t border-border/60 pt-4 tracking-wide break-all">
+        {memorialUrl}
+      </div>
+
+      {/* Action buttons */}
+      <div className="mt-5 flex gap-3 justify-center">
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 rounded-full border-2 border-accent bg-accent/10 text-foreground px-5 py-2.5 text-sm font-medium hover:bg-accent/20 transition"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          {copied ? "Link copied!" : "Share"}
+        </button>
+
+        <button
+          onClick={handlePrint}
+          className="flex items-center gap-2 rounded-full border-2 border-border bg-card text-muted-foreground px-5 py-2.5 text-sm font-medium hover:border-accent/50 hover:text-foreground transition"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+          Print QR Card
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── States ───────────────────────────────────────────────────────────────────
+
 function GeneratingState() {
   return (
     <div className="text-center py-16">
@@ -384,6 +718,19 @@ function GeneratingState() {
       </div>
       <p className="mt-5 text-sm text-muted-foreground max-w-sm mx-auto font-serif">
         This usually takes 10–20 seconds. The page will refresh automatically.
+      </p>
+    </div>
+  );
+}
+
+function ErrorState() {
+  return (
+    <div className="text-center py-16">
+      <p className="font-serif italic text-lg text-muted-foreground">
+        Something went wrong while writing their story.
+      </p>
+      <p className="mt-3 text-sm text-muted-foreground max-w-sm mx-auto">
+        Please try refreshing the page. If the problem continues, contact us.
       </p>
     </div>
   );
