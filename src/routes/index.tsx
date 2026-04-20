@@ -110,7 +110,7 @@ function Hero() {
             <div className="text-xs text-muted-foreground mt-1">2001 — 2024</div>
             <div className="mt-6 flex items-center justify-center">
               <img
-                src="/Lives, remembered/Maquitosqr.png"
+                src="/marquito-qr.png"
                 alt="QR code for Marco Marquito Tamarín memorial"
                 className="w-32 h-32 rounded-lg"
               />
