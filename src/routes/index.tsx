@@ -109,17 +109,11 @@ function Hero() {
             <div className="font-display text-2xl">Marco "Marquito" Tamarín</div>
             <div className="text-xs text-muted-foreground mt-1">2001 — 2024</div>
             <div className="mt-6 flex items-center justify-center">
-              <div className="w-32 h-32 rounded-lg bg-foreground p-3">
-                <div
-                  className="w-full h-full"
-                  style={{
-                    backgroundImage:
-                      "radial-gradient(circle, var(--cream) 30%, transparent 30%)",
-                    backgroundSize: "12% 12%",
-                    backgroundColor: "transparent",
-                  }}
-                />
-              </div>
+              <img
+                src="/Lives, remembered/Maquitosqr.png"
+                alt="QR code for Marco Marquito Tamarín memorial"
+                className="w-32 h-32 rounded-lg"
+              />
             </div>
             <div className="mt-4 text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
               {th.heroScanLabel}
