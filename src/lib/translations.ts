@@ -33,7 +33,7 @@ export const T = {
       howP3: "But you won't always be there. And the story deserves to be heard by everyone who stops to look.",
       howP4:
         "Forever Here lets you place a small QR code beside any memorial, a headstone, an ash vase, a photo on the wall, a memorial t-shirt. When someone scans it, they read the story in that person's own voice. The love you carry gets shared, every time, without you having to say a word.",
-      howCaption: "A QR card beside an ash vase, their story, always ready to be heard.",
+      howCaption: "A QR on an ash vase, their story, always ready to be heard.",
       placements: [
         "A headstone",
         "An ash vase",
@@ -44,7 +44,7 @@ export const T = {
         "A memorial t-shirt",
       ],
       step01Title: "Tell us about them",
-      step01Body: "A short form — their name, their personality, the memories only you carry. Takes about ten minutes.",
+      step01Body: "A short form: their name, their personality, the memories only you carry. Takes about ten minutes.",
       step02Title: "We write their story",
       step02Body: "We weave everything you shared into a warm story, written in their own voice, as if they're speaking directly to whoever stops to listen.",
       step03Title: "Place the QR anywhere",
@@ -94,7 +94,7 @@ export const T = {
         personalityPlaceholder: "fierce, loyal, full of life",
         auraLabel: "The energy they brought into a room —",
         auraOptions: [
-          "They lit up every room — magnetic and joyful",
+          "They lit up every room - magnetic and joyful",
           "A calming presence — everyone felt safe around them",
           "The quiet strength — steady, dependable, unshakeable",
           "Pure mischief — always laughing, always up to something",
