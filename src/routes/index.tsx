@@ -65,8 +65,7 @@ function Hero() {
               transition={{ duration: 0.9, delay: 0.05 }}
               className="font-display text-5xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight"
             >
-              {th.heroTitle1}{" "}
-              <span className="italic text-accent">{th.heroTitle2}</span>
+              {th.heroTitle1}{" "}{th.heroTitle2}
             </motion.h1>
 
             <motion.p
@@ -182,9 +181,9 @@ function HowItWorks() {
           {/* Text */}
           <div>
             <div className="text-xs tracking-[0.3em] uppercase text-accent mb-4">{th.howEyebrow}</div>
-            <h2 className="font-display text-4xl md:text-5xl leading-tight">
+            <h2 className="font-display text-4xl md:text-5xl leading-tight text-accent italic">
               {th.howTitle1}<br />
-              <span className="italic text-accent">{th.howTitle2}</span>
+              {th.howTitle2}
             </h2>
 
             <div className="mt-8 space-y-5 font-serif text-lg text-foreground/80 leading-relaxed max-w-lg">
