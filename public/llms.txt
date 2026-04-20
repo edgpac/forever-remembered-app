@@ -33,5 +33,5 @@ Built with TanStack Start, React, Supabase (PostgreSQL + storage), and Anthropic
 
 ## Contact
 
-Site: https://qrheadstone.com
+Site: https://www.qrheadstone.com
 Brand: Forever Here

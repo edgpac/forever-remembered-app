@@ -156,7 +156,7 @@ export async function runMemorialPipeline(memorialId: string, siteOrigin?: strin
     (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : null) ||
-    "https://foreverhere.app";
+    "https://www.qrheadstone.com";
   const memorialUrl = `${origin.replace(/\/$/, "")}/remember/${memorialId}`;
 
   let qrPngUrl: string | null = null;

@@ -74,7 +74,7 @@ export const Route = createFileRoute("/remember/$memorialId")({
     const desc =
       (m.narrative_en || m.narrative_es || "")?.slice(0, 150) ||
       `A memorial for ${m.full_name} on Forever Here.`;
-    const pageUrl = `https://qrheadstone.com/remember/${m.memorial_id}`;
+    const pageUrl = `https://www.qrheadstone.com/remember/${m.memorial_id}`;
 
     const jsonLd = {
       "@context": "https://schema.org",
@@ -241,7 +241,7 @@ function MemorialPage() {
   const generating = m.status === "generating" || (!narrative && m.status !== "error");
   const paragraphs = (narrative || "").split(/\n\n+/).filter(Boolean);
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://foreverhere.app";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://www.qrheadstone.com";
   const memorialUrl = `${origin}/remember/${m.memorial_id}`;
 
   useEffect(() => {

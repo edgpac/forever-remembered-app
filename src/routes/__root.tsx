@@ -3,7 +3,7 @@ import { LanguageProvider } from "@/lib/language-context";
 
 import appCss from "../styles.css?url";
 
-const SITE_URL = "https://qrheadstone.com";
+const SITE_URL = "https://www.qrheadstone.com";
 
 const organizationJsonLd = {
   "@context": "https://schema.org",

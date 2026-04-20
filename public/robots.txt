@@ -29,4 +29,4 @@ Allow: /
 User-agent: Bytespider
 Allow: /
 
-Sitemap: https://qrheadstone.com/sitemap.xml
+Sitemap: https://www.qrheadstone.com/sitemap.xml
