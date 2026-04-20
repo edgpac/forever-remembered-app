@@ -19,7 +19,7 @@ export const T = {
       heroTitle1: "Their story,",
       heroTitle2: "in their own voice.",
       heroSub:
-        "Fill out a short form. We turn the details into a first-person memorial — and a QR code you can place on a shrine, a photo frame, an urn, a headstone, or a memorial t-shirt.",
+        "Fill out a short form. We turn the details into a first-person memorial, and a QR code you can place on a shrine, a photo frame, an urn, a headstone, or a memorial t-shirt.",
       heroCta: "Begin a memorial",
       heroSeeHow: "See how it works",
       heroScanLabel: "Scan to hear his story",
@@ -29,11 +29,11 @@ export const T = {
       howP1:
         "You have a photo on the wall. A candle beside it. Maybe flowers, a keepsake, something that belonged to them. A small shrine built from love.",
       howP2:
-        "When a friend visits — or a grandchild who never got to meet them, or someone who simply asks — you tell the story. You find the words for how much they meant. You carry that weight every time.",
+        "When a friend visits, or a grandchild who never got to meet them, or someone who simply asks, you tell the story. You find the words for how much they meant. You carry that weight every time.",
       howP3: "But you won't always be there. And the story deserves to be heard by everyone who stops to look.",
       howP4:
-        "Forever Here lets you place a small QR code beside any memorial — a headstone, an ash vase, a photo on the wall, a memorial t-shirt. When someone scans it, they read the story in that person's own voice. The love you carry gets shared, every time, without you having to say a word.",
-      howCaption: "A QR card beside an ash vase — their story, always ready to be heard.",
+        "Forever Here lets you place a small QR code beside any memorial, a headstone, an ash vase, a photo on the wall, a memorial t-shirt. When someone scans it, they read the story in that person's own voice. The love you carry gets shared, every time, without you having to say a word.",
+      howCaption: "A QR card beside an ash vase, their story, always ready to be heard.",
       placements: [
         "A headstone",
         "An ash vase",
@@ -46,9 +46,9 @@ export const T = {
       step01Title: "Tell us about them",
       step01Body: "A short form — their name, their personality, the memories only you carry. Takes about ten minutes.",
       step02Title: "We write their story",
-      step02Body: "We weave everything you shared into a warm story, written in their own voice — as if they're speaking directly to whoever stops to listen.",
+      step02Body: "We weave everything you shared into a warm story, written in their own voice, as if they're speaking directly to whoever stops to listen.",
       step03Title: "Place the QR anywhere",
-      step03Body: "Print on sticker paper or get it engraved — press it onto a headstone, an ash vase, a photo frame, a remembrance shrine, or a memorial t-shirt. Anywhere they are kept close.",
+      step03Body: "Print on sticker paper or get it engraved, press it onto a headstone, an ash vase, a photo frame, a remembrance shrine, or a memorial t-shirt. Anywhere they are kept close.",
       examplesEyebrow: "Examples",
       examplesTitle: "Lives, remembered.",
       ctaTitle1: "Someone you loved deserves to be",
@@ -269,7 +269,7 @@ export const T = {
       heroTitle1: "Su historia,",
       heroTitle2: "en su propia voz.",
       heroSub:
-        "Llena un breve formulario. Convertimos los detalles en un memorial en primera persona — y un código QR que puedes colocar en un altar, un portarretratos, una urna, una lápida o una camiseta memorial.",
+        "Llena un breve formulario. Convertimos los detalles en un memorial en primera persona, y un código QR que puedes colocar en un altar, un portarretratos, una urna, una lápida o una camiseta memorial.",
       heroCta: "Crear un memorial",
       heroSeeHow: "Ver cómo funciona",
       heroScanLabel: "Escanea para escuchar su historia",
@@ -279,11 +279,11 @@ export const T = {
       howP1:
         "Tienes una foto en la pared. Una vela a su lado. Tal vez flores, un recuerdo, algo que les perteneció. Un pequeño altar construido con amor.",
       howP2:
-        "Cuando viene un amigo — o un nieto que nunca llegó a conocerlos, o alguien que simplemente pregunta — tú cuentas la historia. Encuentras las palabras para decir cuánto significaron. Cargas ese peso cada vez.",
+        "Cuando viene un amigo, o un nieto que nunca llegó a conocerlos, o alguien que simplemente pregunta, tú cuentas la historia. Encuentras las palabras para decir cuánto significaron. Cargas ese peso cada vez.",
       howP3: "Pero tú no siempre vas a estar. Y la historia merece ser escuchada por todos los que se detengan a mirar.",
       howP4:
-        "Forever Here te permite colocar un pequeño código QR junto a cualquier memorial — una lápida, una urna, una foto en la pared, una camiseta memorial. Cuando alguien lo escanea, lee la historia en la voz de esa persona. El amor que llevas se comparte, siempre, sin que tengas que decir una sola palabra.",
-      howCaption: "Una tarjeta QR junto a una urna — su historia, siempre lista para ser escuchada.",
+        "Forever Here te permite colocar un pequeño código QR junto a cualquier memorial, una lápida, una urna, una foto en la pared, una camiseta memorial. Cuando alguien lo escanea, lee la historia en la voz de esa persona. El amor que llevas se comparte, siempre, sin que tengas que decir una sola palabra.",
+      howCaption: "Una tarjeta QR junto a una urna, su historia, siempre lista para ser escuchada.",
       placements: [
         "Una lápida",
         "Una urna",
