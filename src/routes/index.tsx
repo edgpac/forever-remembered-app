@@ -211,7 +211,7 @@ function HowItWorks() {
           <div className="relative">
             <div className="rounded-2xl overflow-hidden shadow-warm border border-border/50">
               <img
-                src="/examples/qr-vase.png"
+                src="/marquito-vase.png"
                 alt="QR code placed on an ash vase memorial"
                 className="w-full h-full object-cover"
               />
