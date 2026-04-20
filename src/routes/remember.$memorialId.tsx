@@ -178,7 +178,7 @@ function HeroSection({
   display,
   years,
 }: {
-  m: { portrait_url: string | null; subject_type: string };
+  m: { portrait_url: string | null; subject_type: string; creator_relationship: string | null };
   display: string;
   years: string;
 }) {
@@ -221,6 +221,11 @@ function HeroSection({
         {years && (
           <p className="mt-2 font-serif italic text-white/60" style={{ fontSize: "clamp(0.95rem, 2vw, 1.2rem)" }}>
             {years}
+          </p>
+        )}
+        {m.creator_relationship && (
+          <p className="mt-3 text-[11px] tracking-[0.2em] uppercase text-white/40">
+            {tm.lovedBy} {m.creator_relationship}
           </p>
         )}
       </div>
