@@ -841,12 +841,13 @@ function PetStep2({ form }: FormProp) {
         />
       </Field>
 
-      <Field label={tp.personalityLabel} error={errors.personality_words?.message}>
-        <input
-          type="text"
-          {...register("personality_words")}
-          className={inputCls}
+      <Field label={tp.personalityLabel}>
+        <MultiChoice
+          options={tp.personalityOptions}
+          value={watch("personality_words") ?? ""}
+          onChange={(v) => setValue("personality_words", v)}
           placeholder={tp.personalityPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
