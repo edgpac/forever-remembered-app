@@ -10,7 +10,8 @@ export const Route = createFileRoute("/api/process-memorial")({
           if (!body?.memorialId) {
             return Response.json({ error: "memorialId required" }, { status: 400 });
           }
-          const result = await runMemorialPipeline(body.memorialId);
+          const requestOrigin = new URL(request.url).origin;
+          const result = await runMemorialPipeline(body.memorialId, requestOrigin);
           if (!result.ok && result.error) {
             console.error("Memorial pipeline error:", result.error);
             return Response.json({ error: result.error }, { status: 500 });

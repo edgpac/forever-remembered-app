@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { formatYears } from "@/lib/memorial";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { useLang } from "@/lib/language-context";
 
 type MemorialNote = {
   id: string;
@@ -86,22 +87,24 @@ export const Route = createFileRoute("/remember/$memorialId")({
     };
   },
   component: MemorialPage,
-  notFoundComponent: () => (
+  notFoundComponent: () => {
+    const { t } = useLang();
+    const tm = t.memorial;
+    return (
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
       <main className="flex-1 flex items-center justify-center text-center px-6 py-24">
         <div>
-          <h1 className="font-display text-4xl">Memorial not found</h1>
-          <p className="mt-3 text-muted-foreground">
-            The link may be incorrect or the memorial may have been removed.
-          </p>
+          <h1 className="font-display text-4xl">{tm.notFoundTitle}</h1>
+          <p className="mt-3 text-muted-foreground">{tm.notFoundBody}</p>
           <Link to="/" className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm">
-            Go home
+            {tm.goHome}
           </Link>
         </div>
       </main>
     </div>
-  ),
+    );
+  },
 });
 
 // ─── FadeUp ───────────────────────────────────────────────────────────────────
@@ -158,6 +161,8 @@ function HeroSection({
   display: string;
   years: string;
 }) {
+  const { t } = useLang();
+  const tm = t.memorial;
   const isPet = m.subject_type === "pet";
 
   return (
@@ -186,7 +191,7 @@ function HeroSection({
       {/* Name & dates — bottom-right editorial block */}
       <div className="memorial-hero-text">
         <p className="text-[11px] tracking-[0.35em] uppercase text-white/60 mb-2">
-          {isPet ? "Forever in our hearts" : "In Loving Memory"}
+          {isPet ? tm.foreverInHearts : tm.inLovingMemory}
         </p>
         <h1 className="font-display text-white leading-tight" style={{ fontSize: "clamp(2.2rem, 6vw, 5rem)" }}>
           {display}
@@ -207,6 +212,8 @@ function HeroSection({
 function MemorialPage() {
   const { memorial: m, notes: initialNotes } = Route.useLoaderData();
   const navigate = Route.useNavigate();
+  const { t } = useLang();
+  const tm = t.memorial;
   const display = m.nickname ? `${m.full_name} "${m.nickname}"` : m.full_name;
   const years = formatYears(m.birth_date, m.passing_date);
   const narrative = m.language === "es" ? m.narrative_es : m.narrative_en;
@@ -300,10 +307,10 @@ function MemorialPage() {
         {/* Footer note */}
         <div className="pb-12 text-center text-sm text-muted-foreground">
           {m.creator_relationship && (
-            <p className="font-serif italic">Remembered by {m.creator_relationship}</p>
+            <p className="font-serif italic">{tm.rememberByPrefix} {m.creator_relationship}</p>
           )}
           <Link to="/" className="mt-4 inline-block hover:text-foreground transition text-xs tracking-widest uppercase">
-            Forever Here — Create your own ↗
+            {tm.createOwn}
           </Link>
         </div>
       </article>
@@ -316,9 +323,10 @@ function MemorialPage() {
 // ─── Gallery ──────────────────────────────────────────────────────────────────
 
 function GallerySection({ urls, name }: { urls: string[]; name: string }) {
+  const { t } = useLang();
   return (
     <div>
-      <p className="memorial-eyebrow mb-5">Photos</p>
+      <p className="memorial-eyebrow mb-5">{t.memorial.photosSectionLabel}</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {urls.map((url, i) => (
           <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-muted">
@@ -337,21 +345,23 @@ function GallerySection({ urls, name }: { urls: string[]; name: string }) {
 // ─── Facts ────────────────────────────────────────────────────────────────────
 
 function FactsSection({ m }: { m: Record<string, unknown> }) {
+  const { t } = useLang();
+  const tm = t.memorial;
   const isPet = m.subject_type === "pet";
   const facts: { label: string; value: string }[] = [];
 
-  if (m.hometown) facts.push({ label: "From", value: m.hometown as string });
-  if (m.occupation && !isPet) facts.push({ label: "Did", value: m.occupation as string });
-  if (m.occupation && isPet) facts.push({ label: "Kind", value: m.occupation as string });
-  if (m.loves) facts.push({ label: "Loved", value: (m.loves as string).split(",").slice(0, 2).join(", ") });
-  if (m.catchphrase) facts.push({ label: isPet ? "Habit" : "Always said", value: `"${m.catchphrase}"` });
-  if (m.insider_detail) facts.push({ label: "Energy", value: (m.insider_detail as string).split(" — ")[0] });
+  if (m.hometown) facts.push({ label: tm.factsFrom, value: m.hometown as string });
+  if (m.occupation && !isPet) facts.push({ label: tm.factsDid, value: m.occupation as string });
+  if (m.occupation && isPet) facts.push({ label: tm.factsKind, value: m.occupation as string });
+  if (m.loves) facts.push({ label: tm.factsLoved, value: (m.loves as string).split(",").slice(0, 2).join(", ") });
+  if (m.catchphrase) facts.push({ label: isPet ? tm.factsHabit : tm.factsAlwaysSaid, value: `"${m.catchphrase}"` });
+  if (m.insider_detail) facts.push({ label: tm.factsEnergy, value: (m.insider_detail as string).split(" — ")[0] });
 
   if (facts.length === 0) return null;
 
   return (
     <div>
-      <p className="memorial-eyebrow mb-5">A few things to know</p>
+      <p className="memorial-eyebrow mb-5">{tm.factsSectionLabel}</p>
       <div className="grid sm:grid-cols-2 gap-3">
         {facts.map((f) => (
           <div key={f.label} className="rounded-2xl border border-border/70 bg-card/50 backdrop-blur-sm p-5">
@@ -383,9 +393,10 @@ function getSpotifyEmbedUrl(url: string): string | null {
 }
 
 function MusicSection({ links }: { links: Array<{ url: string; title?: string }> }) {
+  const { t } = useLang();
   return (
     <div>
-      <p className="memorial-eyebrow mb-5">Their music</p>
+      <p className="memorial-eyebrow mb-5">{t.memorial.musicSectionLabel}</p>
       <div className="space-y-4">
         {links.map((link, i) => {
           let platform = "other";
@@ -444,6 +455,8 @@ function LeaveMemorySection({
   initialNotes: MemorialNote[];
   isPet: boolean;
 }) {
+  const { t } = useLang();
+  const tm = t.memorial;
   const [notes, setNotes] = useState<MemorialNote[]>(initialNotes);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
@@ -473,18 +486,18 @@ function LeaveMemorySection({
     <div>
       <div className="flex items-center gap-4 mb-8">
         <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-        <p className="memorial-eyebrow">Leave a memory</p>
+        <p className="memorial-eyebrow">{tm.leaveMemoryTitle}</p>
         <span className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
       </div>
 
       {submitted ? (
         <div className="text-center py-4">
-          <p className="font-serif italic text-foreground/70 text-lg">Thank you for sharing that memory.</p>
+          <p className="font-serif italic text-foreground/70 text-lg">{tm.leaveThanks}</p>
           <button
             onClick={() => setSubmitted(false)}
             className="mt-4 text-xs tracking-widest uppercase text-accent hover:text-foreground transition"
           >
-            Leave another
+            {tm.leaveAnother}
           </button>
         </div>
       ) : (
@@ -493,25 +506,25 @@ function LeaveMemorySection({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={tm.leaveNamePlaceholder}
             maxLength={100}
             className="w-full rounded-xl border border-border bg-card/60 px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition text-sm"
           />
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={isPet ? "Share a moment or memory you hold dear…" : "Share a memory, a message, or something you'd like them to know…"}
+            placeholder={isPet ? tm.leavePetTextPlaceholder : tm.leaveTextPlaceholder}
             maxLength={500}
             rows={4}
             className="w-full rounded-xl border border-border bg-card/60 px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition text-sm font-serif leading-relaxed resize-none"
           />
-          {noteError && <p className="text-xs text-destructive">{noteError}</p>}
+          {noteError && <p className="text-xs text-destructive">{tm.leaveError}</p>}
           <button
             type="submit"
             disabled={submitting || !name.trim() || !text.trim()}
             className="rounded-full border-2 border-accent bg-accent/10 text-foreground px-6 py-2.5 text-sm font-medium hover:bg-accent/20 disabled:opacity-40 transition"
           >
-            {submitting ? "Sending…" : "Leave a memory"}
+            {submitting ? tm.leaveSending : tm.leaveSubmit}
           </button>
         </form>
       )}
@@ -543,6 +556,8 @@ function QRSection({
   years: string;
   memorialUrl: string;
 }) {
+  const { t } = useLang();
+  const tm = t.memorial;
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
@@ -639,7 +654,7 @@ function QRSection({
   </style>
 </head>
 <body>
-  <p class="eyebrow">In Loving Memory</p>
+  <p class="eyebrow">${tm.printEyebrow}</p>
   <h1>${display}</h1>
   ${yearsHtml}
   <div class="divider"></div>
@@ -657,7 +672,7 @@ function QRSection({
 
   return (
     <div className="keepsake-card text-center">
-      <p className="memorial-eyebrow mb-5">Share this memorial</p>
+      <p className="memorial-eyebrow mb-5">{tm.shareTitle}</p>
 
       {m.qr_png_url ? (
         <img
@@ -672,7 +687,7 @@ function QRSection({
       )}
 
       <p className="mt-4 text-sm text-muted-foreground font-serif italic">
-        Scan to share with family
+        {tm.shareScanLabel}
       </p>
 
       <div className="mt-5 text-[11px] text-muted-foreground/60 border-t border-border/60 pt-4 tracking-wide break-all">
@@ -689,7 +704,7 @@ function QRSection({
             <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
           </svg>
-          {copied ? "Link copied!" : "Share"}
+          {copied ? tm.shareCopied : tm.shareBtn}
         </button>
 
         <button
@@ -700,7 +715,7 @@ function QRSection({
             <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
             <rect x="6" y="14" width="12" height="8"/>
           </svg>
-          Print QR Card
+          {tm.printBtn}
         </button>
       </div>
     </div>
@@ -710,27 +725,31 @@ function QRSection({
 // ─── States ───────────────────────────────────────────────────────────────────
 
 function GeneratingState() {
+  const { t } = useLang();
+  const tm = t.memorial;
   return (
     <div className="text-center py-16">
       <div className="inline-flex items-center gap-3 text-muted-foreground">
         <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-        <span className="font-serif italic text-lg">Their story is being written…</span>
+        <span className="font-serif italic text-lg">{tm.generatingTitle}</span>
       </div>
       <p className="mt-5 text-sm text-muted-foreground max-w-sm mx-auto font-serif">
-        This usually takes 10–20 seconds. The page will refresh automatically.
+        {tm.generatingBody}
       </p>
     </div>
   );
 }
 
 function ErrorState() {
+  const { t } = useLang();
+  const tm = t.memorial;
   return (
     <div className="text-center py-16">
       <p className="font-serif italic text-lg text-muted-foreground">
-        Something went wrong while writing their story.
+        {tm.errorTitle}
       </p>
       <p className="mt-3 text-sm text-muted-foreground max-w-sm mx-auto">
-        Please try refreshing the page. If the problem continues, contact us.
+        {tm.errorBody}
       </p>
     </div>
   );

@@ -102,7 +102,7 @@ async function markError(memorialId: string): Promise<void> {
   }
 }
 
-export async function runMemorialPipeline(memorialId: string): Promise<{
+export async function runMemorialPipeline(memorialId: string, siteOrigin?: string): Promise<{
   ok: boolean;
   alreadyProcessed?: boolean;
   qrPngUrl?: string;
@@ -148,6 +148,7 @@ export async function runMemorialPipeline(memorialId: string): Promise<{
   // Prefer explicit env var, then Vercel's auto-injected production URL,
   // then the preview deployment URL (both come without a protocol).
   const origin =
+    siteOrigin ||
     process.env.PUBLIC_SITE_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`

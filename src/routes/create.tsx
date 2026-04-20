@@ -13,6 +13,7 @@ import { generateMemorialId } from "@/lib/memorial";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PortraitUpload } from "@/components/PortraitUpload";
+import { useLang } from "@/lib/language-context";
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -24,11 +25,6 @@ export const Route = createFileRoute("/create")({
   component: CreateMemorial,
 });
 
-const STEPS = [
-  { n: 1, label: "Who" },
-  { n: 2, label: "Their story" },
-  { n: 3, label: "Finish" },
-];
 const STEP_SCHEMAS = [step1Schema, step2Schema, step3Schema];
 
 // ─── MultiChoice ─────────────────────────────────────────────────────────────
@@ -38,11 +34,13 @@ function MultiChoice({
   value,
   onChange,
   placeholder = "Describe it…",
+  otherLabel = "Other — I'll describe it",
 }: {
   options: string[];
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  otherLabel?: string;
 }) {
   const isPreset = options.includes(value);
   const [otherMode, setOtherMode] = useState(!isPreset && value !== "");
@@ -83,7 +81,7 @@ function MultiChoice({
               : "border-border bg-card text-muted-foreground hover:border-accent/50 hover:text-foreground"
           }`}
         >
-          Other — I'll describe it
+          {otherLabel}
         </button>
       </div>
       {otherMode && (
@@ -219,9 +217,17 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
 
 function CreateMemorial() {
   const navigate = useNavigate();
+  const { t } = useLang();
+  const tc = t.create;
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const STEPS = [
+    { n: 1, label: tc.step1.eyebrow },
+    { n: 2, label: tc.step2Person.eyebrow },
+    { n: 3, label: tc.step3.eyebrow },
+  ];
 
   const form = useForm<MemorialFormData>({
     mode: "onTouched",
@@ -326,7 +332,7 @@ function CreateMemorial() {
     <div className="min-h-screen flex flex-col bg-candlelight">
       <SiteHeader />
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-12">
-        <Progress step={step} />
+        <Progress step={step} steps={STEPS} />
 
         <div className="mt-10 grid lg:grid-cols-[1fr_360px] gap-12 items-start">
           <div>
@@ -355,7 +361,7 @@ function CreateMemorial() {
                 disabled={step === 1 || submitting}
                 className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-30 transition"
               >
-                ← Back
+                {tc.back}
               </button>
               <button
                 type="button"
@@ -364,10 +370,10 @@ function CreateMemorial() {
                 className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-7 py-3 text-sm font-medium shadow-warm hover:opacity-90 disabled:opacity-60 transition"
               >
                 {submitting
-                  ? "Creating memorial…"
+                  ? tc.generating
                   : step === 3
-                    ? "Generate memorial"
-                    : "Continue"}
+                    ? tc.generate
+                    : tc.continue}
                 {!submitting && <span aria-hidden>→</span>}
               </button>
             </div>
@@ -382,10 +388,10 @@ function CreateMemorial() {
 
 // ─── Progress ─────────────────────────────────────────────────────────────────
 
-function Progress({ step }: { step: number }) {
+function Progress({ step, steps }: { step: number; steps: { n: number; label: string }[] }) {
   return (
     <div className="flex items-center gap-3">
-      {STEPS.map((s) => (
+      {steps.map((s) => (
         <div key={s.n} className="flex-1 flex items-center gap-2">
           <div className="flex-1">
             <div className={`h-1 rounded-full transition-all duration-500 ${s.n <= step ? "bg-accent" : "bg-border"}`} />
@@ -442,29 +448,30 @@ type FormProp = { form: UseFormReturn<MemorialFormData> };
 
 function Step1({ form }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
+  const { t } = useLang();
+  const ts = t.create.step1;
   const subject = watch("subject_type");
   const portrait = watch("portrait_url");
 
   return (
     <div className="space-y-7">
-      <StepHeader eyebrow="Step 01" title="Who are we remembering?" sub="Start with the simple things." />
+      <StepHeader eyebrow={ts.eyebrow} title={ts.title} sub={ts.sub} />
 
       <div className="grid grid-cols-2 gap-3">
-        {(["person", "pet"] as const).map((t) => (
+        {(["person", "pet"] as const).map((type) => (
           <button
-            key={t}
+            key={type}
             type="button"
-            onClick={() => setValue("subject_type", t, { shouldValidate: true })}
+            onClick={() => setValue("subject_type", type, { shouldValidate: true })}
             className={`rounded-xl border-2 px-5 py-4 text-left transition ${
-              subject === t ? "border-accent bg-accent/10" : "border-border bg-card hover:border-accent/40"
+              subject === type ? "border-accent bg-accent/10" : "border-border bg-card hover:border-accent/40"
             }`}
           >
             <div className="font-display text-xl capitalize">
-              {t === "pet" ? "🐾 " : ""}
-              {t === "person" ? "Person" : "Pet"}
+              {type === "pet" ? ts.petLabel : ts.personLabel}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              {t === "person" ? "A loved one" : "A beloved companion"}
+              {type === "person" ? ts.personSub : ts.petSub}
             </div>
           </button>
         ))}
@@ -472,7 +479,7 @@ function Step1({ form }: FormProp) {
 
       <PortraitUpload value={portrait} onChange={(url) => setValue("portrait_url", url)} />
 
-      <Field label="Full name" error={errors.full_name?.message}>
+      <Field label={ts.fullName} error={errors.full_name?.message}>
         <input
           type="text"
           {...register("full_name")}
@@ -482,8 +489,8 @@ function Step1({ form }: FormProp) {
       </Field>
 
       <Field
-        label={subject === "pet" ? "Nickname or call name" : "Nickname"}
-        hint="What everyone called them"
+        label={subject === "pet" ? ts.nicknamePet : ts.nickname}
+        hint={ts.nicknameHint}
       >
         <input
           type="text"
@@ -494,10 +501,10 @@ function Step1({ form }: FormProp) {
       </Field>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <Field label="Date of birth" error={errors.birth_date?.message}>
+        <Field label={ts.birthDate} error={errors.birth_date?.message}>
           <input type="date" {...register("birth_date")} className={inputCls} />
         </Field>
-        <Field label="Date of passing" error={errors.passing_date?.message}>
+        <Field label={ts.passingDate} error={errors.passing_date?.message}>
           <input type="date" {...register("passing_date")} className={inputCls} />
         </Field>
       </div>
@@ -507,83 +514,58 @@ function Step1({ form }: FormProp) {
 
 // ─── Step 2: Their story (person) ─────────────────────────────────────────────
 
-const PERSON_OCCUPATION_OPTIONS = [
-  "Raised a family",
-  "Ran a business",
-  "Worked in healthcare",
-  "Worked in education",
-  "Artist or creative",
-];
-const PERSON_PERSONALITY_OPTIONS = [
-  "Warm & nurturing",
-  "Funny & outgoing",
-  "Quiet & thoughtful",
-  "Strong & determined",
-];
-const PERSON_AURA_OPTIONS = [
-  "They lit up every room — magnetic and joyful",
-  "A calming presence — everyone felt safe around them",
-  "The quiet strength — steady, dependable, unshakeable",
-  "Pure mischief — always laughing, always up to something",
-  "A force of nature — passionate about everything they did",
-];
-const PERSON_LOVES_OPTIONS = [
-  "Family & friends",
-  "Music & arts",
-  "Sports & outdoors",
-  "Food & cooking",
-  "Travel",
-];
-
 function PersonStep2({ form }: FormProp) {
   const { register, watch, setValue, control, formState: { errors } } = form;
+  const { t } = useLang();
+  const tp = t.create.step2Person;
+  const tc = t.create;
   const { fields, append, remove } = useFieldArray({ control, name: "music_links" });
 
   return (
     <div className="space-y-8">
-      <StepHeader
-        eyebrow="Step 02"
-        title="Tell us their story."
-        sub="Tap a choice or write your own — there are no wrong answers."
-      />
+      <StepHeader eyebrow={tp.eyebrow} title={tp.title} sub={tp.sub} />
 
-      <Field label="What did they do for work or school?">
+      <Field label={tp.occupationLabel}>
         <MultiChoice
-          options={PERSON_OCCUPATION_OPTIONS}
+          options={tp.occupationOptions}
           value={watch("occupation") ?? ""}
           onChange={(v) => setValue("occupation", v)}
-          placeholder="e.g. engineering student, helped at the family shop…"
+          placeholder={tp.occupationPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label="How would you describe their personality?">
+      <Field label={tp.personalityLabel}>
         <MultiChoice
-          options={PERSON_PERSONALITY_OPTIONS}
+          options={tp.personalityOptions}
           value={watch("personality_words") ?? ""}
           onChange={(v) => setValue("personality_words", v)}
-          placeholder="e.g. fierce, loyal, full of life…"
+          placeholder={tp.personalityPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label="If you had to describe the energy they brought into a room, what was it?">
+      <Field label={tp.auraLabel}>
         <MultiChoice
-          options={PERSON_AURA_OPTIONS}
+          options={tp.auraOptions}
           value={watch("aura") ?? ""}
           onChange={(v) => setValue("aura", v)}
-          placeholder="Describe their energy in your own words…"
+          placeholder={tp.auraPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label="What did they love most?">
+      <Field label={tp.lovesLabel}>
         <MultiChoice
-          options={PERSON_LOVES_OPTIONS}
+          options={tp.lovesOptions}
           value={watch("loves") ?? ""}
           onChange={(v) => setValue("loves", v)}
-          placeholder="e.g. long drives, cooking for everyone, quiet mornings…"
+          placeholder={tp.lovesPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label="A phrase or saying they always used" error={errors.catchphrase?.message}>
+      <Field label={tp.catchphraseLabel} error={errors.catchphrase?.message}>
         <input
           type="text"
           {...register("catchphrase")}
@@ -593,34 +575,32 @@ function PersonStep2({ form }: FormProp) {
       </Field>
 
       <Field
-        label="Your strongest memory with them"
-        hint="2–3 sentences. This becomes the heart of their story."
+        label={tp.strongestMemoryLabel}
+        hint={tp.strongestMemoryHint}
         error={errors.strongest_memory?.message}
       >
         <textarea
           {...register("strongest_memory")}
           className={textareaCls}
-          placeholder="The night we drove to the coast and stayed up watching the lights on the water…"
+          placeholder={tp.strongestMemoryPlaceholder}
         />
       </Field>
 
       <Field
-        label="What would they want people who scan this to know?"
+        label={tp.wantPeopleLabel}
         error={errors.want_people_to_know?.message}
       >
         <textarea
           {...register("want_people_to_know")}
           className={textareaCls}
-          placeholder="That love is the only thing worth working hard for."
+          placeholder={tp.wantPeoplePlaceholder}
         />
       </Field>
 
       {/* Music */}
       <div>
-        <div className="text-sm font-medium text-foreground mb-0.5">Their favourite music</div>
-        <div className="text-xs text-muted-foreground mb-3">
-          Paste a YouTube, Spotify, Apple Music, or SoundCloud link — up to 5.
-        </div>
+        <div className="text-sm font-medium text-foreground mb-0.5">{tp.musicTitle}</div>
+        <div className="text-xs text-muted-foreground mb-3">{tp.musicHint}</div>
         <div className="space-y-3">
           {fields.map((field, i) => {
             const url = form.watch(`music_links.${i}.url`) ?? "";
@@ -643,14 +623,14 @@ function PersonStep2({ form }: FormProp) {
                     onClick={() => remove(i)}
                     className="text-xs text-muted-foreground hover:text-destructive transition"
                   >
-                    Remove
+                    {tp.musicRemove}
                   </button>
                 </div>
                 <input
                   type="url"
                   {...register(`music_links.${i}.url`)}
                   className={inputCls}
-                  placeholder="https://open.spotify.com/track/…"
+                  placeholder={tp.musicUrlPlaceholder}
                 />
                 {errors.music_links?.[i]?.url && (
                   <span className="block text-xs text-destructive">
@@ -661,7 +641,7 @@ function PersonStep2({ form }: FormProp) {
                   type="text"
                   {...register(`music_links.${i}.title`)}
                   className={inputCls}
-                  placeholder="Song or playlist name (optional)"
+                  placeholder={tp.musicTitlePlaceholder}
                 />
               </div>
             );
@@ -673,7 +653,7 @@ function PersonStep2({ form }: FormProp) {
             onClick={() => append({ url: "", title: "" })}
             className="mt-3 w-full rounded-xl border-2 border-dashed border-border hover:border-accent/50 py-3 text-sm text-muted-foreground hover:text-foreground transition"
           >
-            + Add a song or playlist
+            {tp.musicAdd}
           </button>
         )}
       </div>
@@ -683,107 +663,89 @@ function PersonStep2({ form }: FormProp) {
 
 // ─── Step 2: Their story (pet) ────────────────────────────────────────────────
 
-const PET_ANIMAL_OPTIONS = ["Dog", "Cat", "Bird", "Rabbit"];
-const PET_PERSONALITY_OPTIONS = [
-  "Playful & energetic",
-  "Calm & cuddly",
-  "Stubborn & hilarious",
-  "Gentle & sweet",
-];
-const PET_AURA_OPTIONS = [
-  "Pure chaos and joy — never a dull moment",
-  "A warm shadow — always by your side",
-  "The boss — ran the whole house",
-  "Gentle soul — soft, quiet, deeply comforting",
-];
-const PET_LOVES_OPTIONS = [
-  "Cuddles",
-  "Fetch & play",
-  "Sunbathing",
-  "Food",
-  "Car rides",
-];
-
 function PetStep2({ form }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
+  const { t } = useLang();
+  const tp = t.create.step2Pet;
+  const tc = t.create;
 
   return (
     <div className="space-y-8">
-      <StepHeader
-        eyebrow="Step 02"
-        title="Tell us about them."
-        sub="Tap a choice or write your own — no wrong answers."
-      />
+      <StepHeader eyebrow={tp.eyebrow} title={tp.title} sub={tp.sub} />
 
-      <Field label="What kind of animal were they?">
+      <Field label={tp.animalLabel}>
         <MultiChoice
-          options={PET_ANIMAL_OPTIONS}
+          options={tp.animalOptions}
           value={watch("occupation") ?? ""}
           onChange={(v) => setValue("occupation", v)}
-          placeholder="e.g. Hamster, Guinea pig, Turtle…"
+          placeholder={tp.animalPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label="What was their personality like?">
+      <Field label={tp.personalityLabel}>
         <MultiChoice
-          options={PET_PERSONALITY_OPTIONS}
+          options={tp.personalityOptions}
           value={watch("personality_words") ?? ""}
           onChange={(v) => setValue("personality_words", v)}
-          placeholder="e.g. wildly dramatic, fiercely loyal…"
+          placeholder={tp.personalityPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label="What energy did they bring into your home?">
+      <Field label={tp.auraLabel}>
         <MultiChoice
-          options={PET_AURA_OPTIONS}
+          options={tp.auraOptions}
           value={watch("aura") ?? ""}
           onChange={(v) => setValue("aura", v)}
-          placeholder="Describe their vibe in your own words…"
+          placeholder={tp.auraPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label="What did they love most?">
+      <Field label={tp.lovesLabel}>
         <MultiChoice
-          options={PET_LOVES_OPTIONS}
+          options={tp.lovesOptions}
           value={watch("loves") ?? ""}
           onChange={(v) => setValue("loves", v)}
-          placeholder="e.g. chasing pigeons, your socks, the window perch…"
+          placeholder={tp.lovesPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
       <Field
-        label="A funny or memorable habit only you would know"
-        hint="The quirk that made them unmistakably themselves."
+        label={tp.habitLabel}
+        hint={tp.habitHint}
         error={errors.catchphrase?.message}
       >
         <input
           type="text"
           {...register("catchphrase")}
           className={inputCls}
-          placeholder="Always stole the warm spot on the couch the second you got up"
+          placeholder={tp.habitPlaceholder}
         />
       </Field>
 
       <Field
-        label="Your favorite moment together"
-        hint="One specific, vivid memory."
+        label={tp.momentLabel}
+        hint={tp.momentHint}
         error={errors.strongest_memory?.message}
       >
         <textarea
           {...register("strongest_memory")}
           className={textareaCls}
-          placeholder="The Sunday mornings she'd curl on my chest and we'd just breathe together…"
+          placeholder={tp.momentPlaceholder}
         />
       </Field>
 
       <Field
-        label="What do you want people to know about them?"
+        label={tp.wantPeopleLabel}
         error={errors.want_people_to_know?.message}
       >
         <textarea
           {...register("want_people_to_know")}
           className={textareaCls}
-          placeholder="That she chose us as much as we chose her."
+          placeholder={tp.wantPeoplePlaceholder}
         />
       </Field>
     </div>
@@ -797,54 +759,40 @@ function Step2({ form }: FormProp) {
 
 // ─── Step 3: Finish ───────────────────────────────────────────────────────────
 
-const RELATIONSHIP_OPTIONS = [
-  "Their child",
-  "Their spouse / partner",
-  "Their sibling",
-  "Their friend",
-  "Their parent",
-];
-const PET_RELATIONSHIP_OPTIONS = [
-  "Their human",
-  "Their family",
-  "Their best friend",
-  "Their caretaker",
-];
-
 function Step3({ form }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
+  const { t } = useLang();
+  const ts = t.create.step3;
+  const tc = t.create;
   const language = watch("language");
   const isPet = watch("subject_type") === "pet";
 
   return (
     <div className="space-y-8">
-      <StepHeader eyebrow="Step 03" title="You & final details." sub="Almost done." />
+      <StepHeader eyebrow={ts.eyebrow} title={ts.title} sub={ts.sub} />
 
-      <Field label={isPet ? "Who are you to them?" : "Who are you to them?"}>
+      <Field label={ts.relationshipLabel}>
         <MultiChoice
-          options={isPet ? PET_RELATIONSHIP_OPTIONS : RELATIONSHIP_OPTIONS}
+          options={isPet ? ts.relationshipPetOptions : ts.relationshipOptions}
           value={watch("creator_relationship") ?? ""}
           onChange={(v) => setValue("creator_relationship", v)}
-          placeholder={isPet ? "e.g. their forever person" : "e.g. their neighbour, their mentor…"}
+          placeholder={isPet ? ts.relationshipPetPlaceholder : ts.relationshipPlaceholder}
+          otherLabel={tc.otherOption}
         />
       </Field>
 
       <Field
-        label={isPet ? "What do you miss most about them?" : "What do you miss most?"}
+        label={isPet ? ts.missPetLabel : ts.missLabel}
         error={errors.miss_most?.message}
       >
         <textarea
           {...register("miss_most")}
           className={textareaCls}
-          placeholder={
-            isPet
-              ? "The sound of her paws on the floor when she heard me come home."
-              : "The way he laughed at his own jokes before finishing them."
-          }
+          placeholder={isPet ? ts.missPetPlaceholder : ts.missPlaceholder}
         />
       </Field>
 
-      <Field label="Memorial language">
+      <Field label={ts.languageLabel}>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {(["en", "es", "both"] as const).map((l) => (
             <button
@@ -855,15 +803,15 @@ function Step3({ form }: FormProp) {
                 language === l ? "border-accent bg-accent/10" : "border-border bg-card hover:border-accent/40"
               }`}
             >
-              {l === "en" ? "English" : l === "es" ? "Spanish" : "Both"}
+              {l === "en" ? ts.languageEn : l === "es" ? ts.languageEs : ts.languageBoth}
             </button>
           ))}
         </div>
       </Field>
 
       <Field
-        label="Your email"
-        hint="We'll send the QR card here"
+        label={ts.emailLabel}
+        hint={ts.emailHint}
         error={errors.creator_email?.message}
       >
         <input
@@ -882,7 +830,7 @@ function Step3({ form }: FormProp) {
             className="mt-1 w-4 h-4 rounded border-border text-accent focus:ring-accent/40"
           />
           <span className="text-foreground">
-            I confirm this memorial is for someone who has passed.
+            {ts.confirmPassedLabel}
             {errors.confirm_passed?.message && (
               <span className="block text-xs text-destructive mt-1">
                 {errors.confirm_passed.message}
@@ -897,7 +845,7 @@ function Step3({ form }: FormProp) {
             className="mt-1 w-4 h-4 rounded border-border text-accent focus:ring-accent/40"
           />
           <span className="text-foreground">
-            I understand this page is public and scannable by anyone with the QR code.
+            {ts.confirmPublicLabel}
             {errors.confirm_public?.message && (
               <span className="block text-xs text-destructive mt-1">
                 {errors.confirm_public.message}

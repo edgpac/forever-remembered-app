@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { useLang } from "@/lib/language-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,6 +37,8 @@ function Landing() {
 }
 
 function Hero() {
+  const { t } = useLang();
+  const th = t.home;
   return (
     <section className="relative bg-candlelight overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -49,7 +52,7 @@ function Hero() {
           className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-1.5 text-xs tracking-widest uppercase text-muted-foreground mb-8"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-          A QR memorial for the people & pets we love
+          {th.badge}
         </motion.div>
 
         <motion.h1
@@ -58,8 +61,8 @@ function Hero() {
           transition={{ duration: 0.9, delay: 0.05 }}
           className="font-display text-5xl md:text-7xl leading-[1.05] tracking-tight"
         >
-          Their story,{" "}
-          <span className="italic text-accent">in their own voice.</span>
+          {th.heroTitle1}{" "}
+          <span className="italic text-accent">{th.heroTitle2}</span>
         </motion.h1>
 
         <motion.p
@@ -68,8 +71,7 @@ function Hero() {
           transition={{ duration: 0.9, delay: 0.15 }}
           className="mt-7 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-serif leading-relaxed"
         >
-          Fill out a short form. We turn the details into a first-person memorial — and a QR
-          code you can place on a shrine, a photo frame, an urn, or a headstone.
+          {th.heroSub}
         </motion.p>
 
         <motion.div
@@ -82,14 +84,14 @@ function Hero() {
             to="/create"
             className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-7 py-3.5 text-sm font-medium shadow-warm hover:opacity-90 transition"
           >
-            Begin a memorial
+            {th.heroCta}
             <span aria-hidden>→</span>
           </Link>
           <a
             href="#how"
             className="text-sm text-muted-foreground hover:text-foreground transition"
           >
-            See how it works
+            {th.heroSeeHow}
           </a>
         </motion.div>
 
@@ -120,7 +122,7 @@ function Hero() {
               </div>
             </div>
             <div className="mt-4 text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-              Scan to hear his story
+              {th.heroScanLabel}
             </div>
           </div>
         </motion.div>
@@ -130,31 +132,13 @@ function Hero() {
 }
 
 function HowItWorks() {
-  const steps = [
-    {
-      n: "01",
-      title: "Tell us about them",
-      body: "A short form — their name, their personality, the memories only you carry. Takes about ten minutes.",
-    },
-    {
-      n: "02",
-      title: "We write their story",
-      body: "Our AI weaves everything into a warm, first-person narrative — written as if they're speaking to whoever scans.",
-    },
-    {
-      n: "03",
-      title: "Place the QR anywhere",
-      body: "Print the card and attach it to a headstone, an ash vase, a photo on the wall — anywhere they are remembered.",
-    },
-  ];
+  const { t } = useLang();
+  const th = t.home;
 
-  const placements = [
-    "A headstone",
-    "An ash vase",
-    "A photo on the wall",
-    "A remembrance shrine",
-    "A shadow box",
-    "A memorial frame",
+  const steps = [
+    { n: "01", title: th.step01Title, body: th.step01Body },
+    { n: "02", title: th.step02Title, body: th.step02Body },
+    { n: "03", title: th.step03Title, body: th.step03Body },
   ];
 
   return (
@@ -166,35 +150,22 @@ function HowItWorks() {
 
           {/* Text */}
           <div>
-            <div className="text-xs tracking-[0.3em] uppercase text-accent mb-4">How it works</div>
+            <div className="text-xs tracking-[0.3em] uppercase text-accent mb-4">{th.howEyebrow}</div>
             <h2 className="font-display text-4xl md:text-5xl leading-tight">
-              When you're not there<br />
-              <span className="italic text-accent">to tell the story.</span>
+              {th.howTitle1}<br />
+              <span className="italic text-accent">{th.howTitle2}</span>
             </h2>
 
             <div className="mt-8 space-y-5 font-serif text-lg text-foreground/80 leading-relaxed max-w-lg">
-              <p>
-                You have a photo on the wall. A candle beside it. Maybe flowers, a keepsake,
-                something that belonged to them. A small shrine built from love.
-              </p>
-              <p>
-                When a friend visits — or a grandchild who never got to meet them, or someone
-                who simply asks — you tell the story. You find the words for how much they meant.
-                You carry that weight every time.
-              </p>
-              <p className="text-foreground font-medium not-italic">
-                But you won't always be there. And the story deserves to be heard by everyone who stops to look.
-              </p>
-              <p>
-                Forever Here lets you place a small QR code beside any memorial — a headstone,
-                an ash vase, a photo on the wall. When someone scans it, they read the story
-                in that person's own voice. The love you carry gets shared, every time, without you having to say a word.
-              </p>
+              <p>{th.howP1}</p>
+              <p>{th.howP2}</p>
+              <p className="text-foreground font-medium not-italic">{th.howP3}</p>
+              <p>{th.howP4}</p>
             </div>
 
             {/* Placement chips */}
             <div className="mt-8 flex flex-wrap gap-2">
-              {placements.map((p) => (
+              {th.placements.map((p) => (
                 <span
                   key={p}
                   className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground tracking-wide"
@@ -214,9 +185,8 @@ function HowItWorks() {
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Caption */}
             <p className="mt-3 text-center text-xs text-muted-foreground font-serif italic">
-              A QR card beside an ash vase — their story, always ready to be heard.
+              {th.howCaption}
             </p>
           </div>
         </div>
@@ -241,6 +211,9 @@ function HowItWorks() {
 }
 
 function Examples() {
+  const { t } = useLang();
+  const th = t.home;
+
   const examples = [
     {
       name: "Rosa Méndez",
@@ -268,8 +241,8 @@ function Examples() {
     <section className="bg-muted/40 border-y border-border/50">
       <div className="max-w-6xl mx-auto px-6 py-24">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="text-xs tracking-[0.3em] uppercase text-accent mb-3">Examples</div>
-          <h2 className="font-display text-4xl md:text-5xl">Lives, remembered.</h2>
+          <div className="text-xs tracking-[0.3em] uppercase text-accent mb-3">{th.examplesEyebrow}</div>
+          <h2 className="font-display text-4xl md:text-5xl">{th.examplesTitle}</h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {examples.map((e) => (
@@ -297,20 +270,22 @@ function Examples() {
 }
 
 function CTA() {
+  const { t } = useLang();
+  const th = t.home;
   return (
     <section className="max-w-3xl mx-auto px-6 py-24 md:py-32 text-center">
       <h2 className="font-display text-4xl md:text-5xl leading-tight">
-        Someone you loved deserves to be{" "}
-        <span className="italic text-accent">heard again.</span>
+        {th.ctaTitle1}{" "}
+        <span className="italic text-accent">{th.ctaTitle2}</span>
       </h2>
       <p className="mt-6 text-muted-foreground font-serif text-lg">
-        It takes about ten minutes. The QR card arrives in your inbox.
+        {th.ctaSub}
       </p>
       <Link
         to="/create"
         className="mt-10 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
       >
-        Begin a memorial
+        {th.ctaBtn}
         <span aria-hidden>→</span>
       </Link>
     </section>
