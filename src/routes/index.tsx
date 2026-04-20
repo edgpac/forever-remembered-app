@@ -249,7 +249,7 @@ function Examples() {
     {
       name: "Rosa Méndez",
       nick: "Abuelita",
-      years: "1938 — 2023",
+      years: "1968 — 2023",
       quote: "Échale ganas, mija. Always.",
       img: "/examples/rosa.jpeg",
     },
