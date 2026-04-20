@@ -19,7 +19,7 @@ const getMemorial = createServerFn({ method: "GET" })
     const { data: memorial, error } = await supabaseAdmin
       .from("memorials")
       .select(
-        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, aura, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, want_people_to_know"
+        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, insider_detail, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, want_people_to_know"
       )
       .eq("memorial_id", data.memorialId)
       .maybeSingle();
@@ -277,7 +277,7 @@ function MemorialPage() {
         )}
 
         {/* Facts */}
-        {(m.hometown || m.loves || m.catchphrase || m.aura) && (
+        {(m.hometown || m.loves || m.catchphrase || m.insider_detail) && (
           <FadeUp className="max-w-2xl mx-auto px-6 pb-16">
             <FactsSection m={m} />
           </FadeUp>
@@ -345,7 +345,7 @@ function FactsSection({ m }: { m: Record<string, unknown> }) {
   if (m.occupation && isPet) facts.push({ label: "Kind", value: m.occupation as string });
   if (m.loves) facts.push({ label: "Loved", value: (m.loves as string).split(",").slice(0, 2).join(", ") });
   if (m.catchphrase) facts.push({ label: isPet ? "Habit" : "Always said", value: `"${m.catchphrase}"` });
-  if (m.aura) facts.push({ label: "Energy", value: (m.aura as string).split(" — ")[0] });
+  if (m.insider_detail) facts.push({ label: "Energy", value: (m.insider_detail as string).split(" — ")[0] });
 
   if (facts.length === 0) return null;
 

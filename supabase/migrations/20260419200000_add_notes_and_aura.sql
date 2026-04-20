@@ -1,7 +1,6 @@
--- Add aura/energy field to memorials table
-ALTER TABLE public.memorials ADD COLUMN IF NOT EXISTS aura TEXT;
-
 -- Memorial notes table — "Leave a Memory" feature
+-- Run this in your Supabase SQL editor (Dashboard → SQL Editor → New query)
+
 CREATE TABLE IF NOT EXISTS public.memorial_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   memorial_id TEXT NOT NULL REFERENCES public.memorials(memorial_id) ON DELETE CASCADE,

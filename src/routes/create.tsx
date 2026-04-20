@@ -294,7 +294,7 @@ function CreateMemorial() {
         hometown: v.hometown || null,
         occupation: v.occupation || null,
         personality_words: v.personality_words || null,
-        aura: v.aura || null,
+        insider_detail: v.aura || null,
         loves: v.loves || null,
         strongest_memory: v.strongest_memory || null,
         catchphrase: v.catchphrase || null,

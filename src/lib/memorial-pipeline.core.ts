@@ -24,7 +24,7 @@ function buildPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
   if (isPet) {
     push("Kind of animal", m.occupation as string);
     push("Their personality", m.personality_words as string);
-    push("The energy they brought to the home", m.aura as string);
+    push("The energy they brought to the home", m.insider_detail as string);
     push("What they loved most", m.loves as string);
     push("A funny or memorable habit", m.catchphrase as string);
     push("Favorite moment together", m.strongest_memory as string);
@@ -32,7 +32,7 @@ function buildPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
     push("Hometown", m.hometown as string);
     push("What they did", m.occupation as string);
     push("Their personality", m.personality_words as string);
-    push("The energy they brought into a room", m.aura as string);
+    push("The energy they brought into a room", m.insider_detail as string);
     push("What they loved most", m.loves as string);
     push("A phrase or saying they always used", m.catchphrase as string);
     push("Strongest memory the writer has of them", m.strongest_memory as string);
