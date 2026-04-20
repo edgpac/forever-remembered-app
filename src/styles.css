@@ -241,12 +241,10 @@
   .memorial-hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.08) 0%,
-      rgba(0, 0, 0, 0.15) 40%,
-      rgba(0, 0, 0, 0.72) 100%
-    );
+    /* Bottom fade for overall depth + right fade to protect text legibility */
+    background:
+      linear-gradient(to left,  rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.40) 38%, transparent 65%),
+      linear-gradient(to bottom, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.08) 45%, rgba(0,0,0,0.55) 100%);
   }
 
   .memorial-hero-text {
@@ -254,9 +252,10 @@
     z-index: 10;
     width: 100%;
     align-self: flex-end;
+    text-align: right;
     padding: 2.5rem 1.5rem 2.5rem;
     max-width: 800px;
-    margin: 0 auto;
+    margin-left: auto; /* flush to the right edge of a centred max-width container */
   }
   @media (min-width: 768px) {
     .memorial-hero-text {

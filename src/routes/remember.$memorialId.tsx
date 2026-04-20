@@ -183,14 +183,14 @@ function HeroSection({
         }}
       />
 
-      {/* Name & dates — bottom overlay */}
+      {/* Name & dates — bottom-right editorial block */}
       <div className="memorial-hero-text">
         <p className="text-[11px] tracking-[0.35em] uppercase text-white/60 mb-2">
           {isPet ? "Forever in our hearts" : "In Loving Memory"}
         </p>
         <h1 className="font-display text-white leading-tight" style={{ fontSize: "clamp(2.2rem, 6vw, 5rem)" }}>
-          {isPet && <span className="mr-2 text-[0.7em]">🐾</span>}
           {display}
+          {isPet && <span className="ml-3 text-[0.7em]">🐾</span>}
         </h1>
         {years && (
           <p className="mt-2 font-serif italic text-white/60" style={{ fontSize: "clamp(0.95rem, 2vw, 1.2rem)" }}>
