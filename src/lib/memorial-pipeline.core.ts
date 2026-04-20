@@ -145,7 +145,17 @@ export async function runMemorialPipeline(memorialId: string): Promise<{
     return { ok: false, error: `Narrative generation failed: ${e instanceof Error ? e.message : String(e)}` };
   }
 
-  const origin = process.env.PUBLIC_SITE_URL || "https://foreverhere.app";
+  // Prefer explicit env var, then Vercel's auto-injected production URL,
+  // then the preview deployment URL (both come without a protocol).
+  const origin =
+    process.env.PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : null) ||
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : null) ||
+    "https://foreverhere.app";
   const memorialUrl = `${origin.replace(/\/$/, "")}/remember/${memorialId}`;
 
   let qrPngUrl: string | null = null;
