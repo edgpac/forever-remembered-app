@@ -134,36 +134,107 @@ function HowItWorks() {
     {
       n: "01",
       title: "Tell us about them",
-      body: "A 5-step form. Their name, their world, the things only you remember.",
+      body: "A short form — their name, their personality, the memories only you carry. Takes about ten minutes.",
     },
     {
       n: "02",
       title: "We write their story",
-      body: "Our AI weaves your details into a warm, first-person narrative — in their voice.",
+      body: "Our AI weaves everything into a warm, first-person narrative — written as if they're speaking to whoever scans.",
     },
     {
       n: "03",
-      title: "Get a QR card",
-      body: "A printable card arrives in your email. Place it anywhere. Anyone who scans it meets them.",
+      title: "Place the QR anywhere",
+      body: "Print the card and attach it to a headstone, an ash vase, a photo on the wall — anywhere they are remembered.",
     },
   ];
+
+  const placements = [
+    "A headstone",
+    "An ash vase",
+    "A photo on the wall",
+    "A remembrance shrine",
+    "A shadow box",
+    "A memorial frame",
+  ];
+
   return (
-    <section id="how" className="max-w-6xl mx-auto px-6 py-24 md:py-32">
-      <div className="text-center max-w-2xl mx-auto mb-16">
-        <div className="text-xs tracking-[0.3em] uppercase text-accent mb-3">How it works</div>
-        <h2 className="font-display text-4xl md:text-5xl">Three quiet steps.</h2>
-      </div>
-      <div className="grid md:grid-cols-3 gap-6">
-        {steps.map((s) => (
-          <div
-            key={s.n}
-            className="rounded-2xl border border-border bg-card p-8 hover:shadow-warm transition-shadow"
-          >
-            <div className="font-display text-accent text-3xl">{s.n}</div>
-            <h3 className="mt-4 font-display text-xl">{s.title}</h3>
-            <p className="mt-3 text-muted-foreground font-serif leading-relaxed">{s.body}</p>
+    <section id="how" className="bg-candlelight border-y border-border/40">
+      <div className="max-w-6xl mx-auto px-6 py-24 md:py-32">
+
+        {/* — Narrative intro + photo — */}
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20 md:mb-28">
+
+          {/* Text */}
+          <div>
+            <div className="text-xs tracking-[0.3em] uppercase text-accent mb-4">How it works</div>
+            <h2 className="font-display text-4xl md:text-5xl leading-tight">
+              When you're not there<br />
+              <span className="italic text-accent">to tell the story.</span>
+            </h2>
+
+            <div className="mt-8 space-y-5 font-serif text-lg text-foreground/80 leading-relaxed max-w-lg">
+              <p>
+                You have a photo on the wall. A candle beside it. Maybe flowers, a keepsake,
+                something that belonged to them. A small shrine built from love.
+              </p>
+              <p>
+                When a friend visits — or a grandchild who never got to meet them, or someone
+                who simply asks — you tell the story. You find the words for how much they meant.
+                You carry that weight every time.
+              </p>
+              <p className="text-foreground font-medium not-italic">
+                But you won't always be there. And the story deserves to be heard by everyone who stops to look.
+              </p>
+              <p>
+                Forever Here lets you place a small QR code beside any memorial — a headstone,
+                an ash vase, a photo on the wall. When someone scans it, they read the story
+                in that person's own voice. The love you carry gets shared, every time, without you having to say a word.
+              </p>
+            </div>
+
+            {/* Placement chips */}
+            <div className="mt-8 flex flex-wrap gap-2">
+              {placements.map((p) => (
+                <span
+                  key={p}
+                  className="rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground tracking-wide"
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
           </div>
-        ))}
+
+          {/* Photo — ash vase with QR */}
+          <div className="relative">
+            <div className="rounded-2xl overflow-hidden shadow-warm border border-border/50">
+              <img
+                src="/examples/qr-vase.png"
+                alt="QR code placed on an ash vase memorial"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Caption */}
+            <p className="mt-3 text-center text-xs text-muted-foreground font-serif italic">
+              A QR card beside an ash vase — their story, always ready to be heard.
+            </p>
+          </div>
+        </div>
+
+        {/* — Three steps — */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {steps.map((s) => (
+            <div
+              key={s.n}
+              className="rounded-2xl border border-border bg-card/70 p-8 hover:shadow-warm transition-shadow"
+            >
+              <div className="font-display text-accent text-3xl">{s.n}</div>
+              <h3 className="mt-4 font-display text-xl">{s.title}</h3>
+              <p className="mt-3 text-muted-foreground font-serif leading-relaxed">{s.body}</p>
+            </div>
+          ))}
+        </div>
+
       </div>
     </section>
   );
