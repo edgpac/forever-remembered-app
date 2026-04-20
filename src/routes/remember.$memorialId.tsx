@@ -44,6 +44,29 @@ const getMemorial = createServerFn({ method: "GET" })
     return { memorial, notes };
   });
 
+const updateNarrative = createServerFn({ method: "POST" })
+  .inputValidator((d: { memorialId: string; lang: "en" | "es"; text: string; email: string }) => d)
+  .handler(async ({ data }) => {
+    const { data: memorial, error: fetchErr } = await supabaseAdmin
+      .from("memorials")
+      .select("creator_email")
+      .eq("memorial_id", data.memorialId)
+      .maybeSingle();
+    if (fetchErr || !memorial) throw new Error("Memorial not found");
+    if (memorial.creator_email.toLowerCase() !== data.email.trim().toLowerCase()) {
+      throw new Error("EMAIL_MISMATCH");
+    }
+    const patch = data.lang === "es"
+      ? { narrative_es: data.text.trim() }
+      : { narrative_en: data.text.trim() };
+    const { error } = await supabaseAdmin
+      .from("memorials")
+      .update(patch)
+      .eq("memorial_id", data.memorialId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 const addNote = createServerFn({ method: "POST" })
   .inputValidator((d: { memorialId: string; author_name: string; note_text: string }) => d)
   .handler(async ({ data }) => {
@@ -283,15 +306,12 @@ function MemorialPage() {
           ) : generating ? (
             <GeneratingState />
           ) : (
-            <div className="space-y-6">
-              {paragraphs.map((p, i) => (
-                <FadeUp key={i} delay={i * 80}>
-                  <p className={`font-serif text-lg md:text-xl leading-[1.85] text-foreground/90 ${i === 0 ? "first-paragraph" : ""}`}>
-                    {p}
-                  </p>
-                </FadeUp>
-              ))}
-            </div>
+            <EditableNarrative
+              memorialId={m.memorial_id}
+              initialText={narrative ?? ""}
+              lang={m.language === "es" ? "es" : "en"}
+              paragraphs={paragraphs}
+            />
           )}
         </section>
 
@@ -813,6 +833,107 @@ function QRSection({
 }
 
 // ─── States ───────────────────────────────────────────────────────────────────
+
+function EditableNarrative({
+  memorialId,
+  initialText,
+  lang,
+  paragraphs: initialParagraphs,
+}: {
+  memorialId: string;
+  initialText: string;
+  lang: "en" | "es";
+  paragraphs: string[];
+}) {
+  const { t } = useLang();
+  const tm = t.memorial;
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(initialText);
+  const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const paragraphs = text.split(/\n\n+/).filter(Boolean);
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      await updateNarrative({ data: { memorialId, lang, text, email } });
+      setSaved(true);
+      setEditing(false);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setError(msg === "EMAIL_MISMATCH" ? tm.editError : msg || tm.editError);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      {editing ? (
+        <div className="space-y-5">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            className="w-full min-h-[320px] rounded-xl border border-border bg-card px-5 py-4 font-serif text-base leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition resize-y"
+            autoFocus
+          />
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">{tm.editEmailPrompt}</p>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+            />
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || !email.trim()}
+              className="rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
+            >
+              {saving ? tm.editSaving : tm.editSave}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setEditing(false); setText(initialText); setError(null); }}
+              className="text-sm text-muted-foreground hover:text-foreground transition"
+            >
+              {tm.editCancel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {paragraphs.map((p, i) => (
+            <FadeUp key={i} delay={i * 80}>
+              <p className={`font-serif text-lg md:text-xl leading-[1.85] text-foreground/90 ${i === 0 ? "first-paragraph" : ""}`}>
+                {p}
+              </p>
+            </FadeUp>
+          ))}
+          <div className="pt-4 flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-4 py-1.5 transition"
+            >
+              {tm.editStory}
+            </button>
+            {saved && <span className="text-xs text-accent">{tm.editSaved}</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function GeneratingState() {
   const { t } = useLang();
