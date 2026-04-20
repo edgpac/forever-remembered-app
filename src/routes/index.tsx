@@ -42,84 +42,121 @@ function Hero() {
   return (
     <section className="relative bg-candlelight overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute top-1/3 left-1/3 w-[600px] h-[600px] rounded-full bg-accent/8 blur-3xl" />
       </div>
-      <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-28 md:pt-28 md:pb-36 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-1.5 text-xs tracking-wide uppercase text-muted-foreground mb-8 max-w-[90vw] text-center"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-          {th.badge}
-        </motion.div>
+      <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
 
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.05 }}
-          className="font-display text-5xl md:text-7xl leading-[1.05] tracking-tight"
-        >
-          {th.heroTitle1}{" "}
-          <span className="italic text-accent">{th.heroTitle2}</span>
-        </motion.h1>
+          {/* Left — copy */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-1.5 text-xs tracking-wide uppercase text-muted-foreground mb-8 max-w-[90vw]"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+              {th.badge}
+            </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.15 }}
-          className="mt-7 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-serif leading-relaxed"
-        >
-          {th.heroSub}
-        </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.05 }}
+              className="font-display text-5xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight"
+            >
+              {th.heroTitle1}{" "}
+              <span className="italic text-accent">{th.heroTitle2}</span>
+            </motion.h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.25 }}
-          className="mt-10 flex items-center justify-center gap-4"
-        >
-          <Link
-            to="/create"
-            className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-7 py-3.5 text-sm font-medium shadow-warm hover:opacity-90 transition"
-          >
-            {th.heroCta}
-            <span aria-hidden>→</span>
-          </Link>
-          <a
-            href="#how"
-            className="text-sm text-muted-foreground hover:text-foreground transition"
-          >
-            {th.heroSeeHow}
-          </a>
-        </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.15 }}
+              className="mt-7 text-lg md:text-xl text-muted-foreground font-serif leading-relaxed max-w-lg"
+            >
+              {th.heroSub}
+            </motion.p>
 
-        {/* Symbolic QR + portrait */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.45 }}
-          className="mt-20 mx-auto max-w-md"
-        >
-          <div className="relative rounded-2xl border border-border bg-card shadow-warm p-6 md:p-8">
-            <div className="text-[10px] tracking-[0.3em] text-accent uppercase mb-2">
-              Forever Here
-            </div>
-            <div className="font-display text-2xl">Marco "Marquito" Tamarín</div>
-            <div className="text-xs text-muted-foreground mt-1">2001 — 2024</div>
-            <div className="mt-6 flex items-center justify-center">
-              <img
-                src="/marquito-qr.png"
-                alt="QR code for Marco Marquito Tamarín memorial"
-                className="w-32 h-32 rounded-lg"
-              />
-            </div>
-            <div className="mt-4 text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-              {th.heroScanLabel}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.25 }}
+              className="mt-10 flex items-center gap-4"
+            >
+              <Link
+                to="/create"
+                className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-7 py-3.5 text-sm font-medium shadow-warm hover:opacity-90 transition"
+              >
+                {th.heroCta}
+                <span aria-hidden>→</span>
+              </Link>
+              <a
+                href="#how"
+                className="text-sm text-muted-foreground hover:text-foreground transition"
+              >
+                {th.heroSeeHow}
+              </a>
+            </motion.div>
           </div>
-        </motion.div>
+
+          {/* Right — memorial card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.35 }}
+            className="flex justify-center lg:justify-end"
+          >
+            <div className="w-full max-w-sm rounded-2xl bg-foreground text-background shadow-warm overflow-hidden">
+              {/* Card header */}
+              <div className="flex items-center justify-between px-7 pt-7 pb-5">
+                <span className="text-accent text-[10px] tracking-[0.35em] uppercase font-medium">
+                  Forever Here
+                </span>
+                <span className="text-[10px] tracking-widest uppercase text-background/40">
+                  ✦ In Loving Memory
+                </span>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-background/10 mx-7" />
+
+              {/* Data rows */}
+              <div className="px-7 pt-5 pb-3 space-y-4">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-[9px] tracking-[0.25em] uppercase text-background/40 shrink-0">Name</span>
+                  <span className="font-display text-lg leading-tight text-right">
+                    Marco "Marquito" Tamarín
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[9px] tracking-[0.25em] uppercase text-background/40">Born</span>
+                  <span className="text-sm text-background/80">2001</span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[9px] tracking-[0.25em] uppercase text-background/40">Passed</span>
+                  <span className="text-sm text-background/80">2024</span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-background/10 mx-7 mt-2" />
+
+              {/* QR */}
+              <div className="flex flex-col items-center px-7 py-7">
+                <img
+                  src="/marquito-qr.png"
+                  alt="QR code — scan to read Marco Tamarín's memorial"
+                  className="w-40 h-40 rounded-xl"
+                />
+                <span className="mt-4 text-[9px] tracking-[0.25em] uppercase text-background/40">
+                  {th.heroScanLabel}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
       </div>
     </section>
   );
