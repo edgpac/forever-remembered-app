@@ -15,7 +15,7 @@ export const T = {
       copy: (year: number) => `© ${year} Forever Here · Made with Love by Van Marr & Family`,
     },
     home: {
-      badge: "A QR memorial for the people & pets we love",
+      badge: "QRHeadstone · A memorial for the people & pets we love",
       heroTitle1: "Their story,",
       heroTitle2: "in their own voice.",
       heroSub:
@@ -242,7 +242,7 @@ export const T = {
       copy: (year: number) => `© ${year} Forever Here · Hecho con Amor por Van Marr & Familia`,
     },
     home: {
-      badge: "Un memorial con código QR para las personas y mascotas que amamos",
+      badge: "QRHeadstone · Un memorial para las personas y mascotas que amamos",
       heroTitle1: "Su historia,",
       heroTitle2: "en su propia voz.",
       heroSub:
