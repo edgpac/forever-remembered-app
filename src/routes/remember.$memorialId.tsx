@@ -74,15 +74,36 @@ export const Route = createFileRoute("/remember/$memorialId")({
     const desc =
       (m.narrative_en || m.narrative_es || "")?.slice(0, 150) ||
       `A memorial for ${m.full_name} on Forever Here.`;
+    const pageUrl = `https://qrheadstone.com/remember/${m.memorial_id}`;
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": m.subject_type === "pet" ? "Animal" : "Person",
+      name: m.full_name,
+      alternateName: m.nickname || undefined,
+      birthDate: m.birth_date || undefined,
+      deathDate: m.passing_date || undefined,
+      description: desc,
+      image: m.portrait_url || undefined,
+      url: pageUrl,
+      mainEntityOfPage: pageUrl,
+    };
+
     return {
       meta: [
         { title: `${display} — Forever Here` },
         { name: "description", content: desc },
         { property: "og:title", content: `${display} — Forever Here` },
         { property: "og:description", content: desc },
+        { property: "og:url", content: pageUrl },
+        { property: "og:type", content: "profile" },
         ...(m.portrait_url ? [{ property: "og:image", content: m.portrait_url }] : []),
         ...(m.portrait_url ? [{ name: "twitter:image", content: m.portrait_url }] : []),
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "robots", content: "index, follow" },
+      ],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(jsonLd) },
       ],
     };
   },

@@ -1,0 +1,37 @@
+# Forever Here — QRHeadstone
+
+> A QR memorial platform for people and pets. Families fill out a short form; AI writes a warm, first-person narrative in the voice of the person or pet who passed. A QR code is generated and can be placed on a headstone, ash vase, photo frame, or remembrance shrine. When someone scans it, they read the story in that person's own voice.
+
+## What it does
+
+- Families describe a loved one or pet through a guided form (personality, memories, relationships, favourite things)
+- An AI model (Claude by Anthropic) generates a 4–6 paragraph first-person memorial narrative in English, Spanish, or both
+- A QR code is created and linked permanently to the memorial page
+- The QR can be printed and placed on any physical memorial object
+- Visitors can leave memories and messages on the memorial page
+- Family can add photos, music links, and legacy links (social media, published work, etc.)
+
+## Key pages
+
+- `/` — Landing page explaining the service
+- `/create` — Three-step form to create a memorial
+- `/remember/[id]` — Individual memorial page (public, scannable by anyone with the QR code)
+
+## Supported languages
+
+English and Spanish. Memorial narratives can be generated in either or both languages.
+
+## Who uses it
+
+- Families who have lost a loved one and want to create a lasting digital memorial
+- Pet owners who want to honor a companion animal
+- Funeral homes looking to offer a modern memorial service
+
+## Technology
+
+Built with TanStack Start, React, Supabase (PostgreSQL + storage), and Anthropic Claude for narrative generation.
+
+## Contact
+
+Site: https://qrheadstone.com
+Brand: Forever Here

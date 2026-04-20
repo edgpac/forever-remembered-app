@@ -3,6 +3,18 @@ import { LanguageProvider } from "@/lib/language-context";
 
 import appCss from "../styles.css?url";
 
+const SITE_URL = "https://qrheadstone.com";
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Forever Here",
+  url: SITE_URL,
+  description:
+    "A QR memorial platform. Fill out a short form and we write a first-person story in the voice of your loved one, then generate a QR code for any headstone, ash vase, or shrine.",
+  sameAs: [SITE_URL],
+};
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -30,19 +42,25 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Forever Here — A QR memorial for someone you love" },
+      { name: "description", content: "Fill out a short form. We write their story in their own voice and generate a QR code for any headstone, ash vase, or shrine. Forever Here keeps memory close." },
+      { name: "author", content: "Forever Here" },
+      { property: "og:title", content: "Forever Here — A QR memorial for someone you love" },
+      { property: "og:description", content: "A short form. A first-person story. A QR code for the headstone, frame, or shrine." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:site_name", content: "Forever Here" },
+      { property: "og:url", content: SITE_URL },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "index, follow" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "canonical", href: SITE_URL },
+    ],
+    scripts: [
       {
-        rel: "stylesheet",
-        href: appCss,
+        type: "application/ld+json",
+        children: JSON.stringify(organizationJsonLd),
       },
     ],
   }),
