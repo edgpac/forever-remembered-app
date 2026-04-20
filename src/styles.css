@@ -134,6 +134,7 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4 {
@@ -253,9 +254,14 @@
     width: 100%;
     align-self: flex-end;
     text-align: right;
-    padding: 2.5rem 1.5rem 2.5rem;
+    padding: 1.5rem 1.25rem 1.75rem;
     max-width: 800px;
-    margin-left: auto; /* flush to the right edge of a centred max-width container */
+    margin-left: auto;
+  }
+  @media (min-width: 480px) {
+    .memorial-hero-text {
+      padding: 2rem 1.75rem 2.25rem;
+    }
   }
   @media (min-width: 768px) {
     .memorial-hero-text {

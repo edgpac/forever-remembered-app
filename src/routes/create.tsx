@@ -217,16 +217,16 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
 
 function CreateMemorial() {
   const navigate = useNavigate();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const tc = t.create;
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const STEPS = [
-    { n: 1, label: tc.step1.eyebrow },
-    { n: 2, label: tc.step2Person.eyebrow },
-    { n: 3, label: tc.step3.eyebrow },
+    { n: 1, label: lang === "es" ? "Quién" : "Who" },
+    { n: 2, label: lang === "es" ? "Historia" : "Story" },
+    { n: 3, label: lang === "es" ? "Final" : "Finish" },
   ];
 
   const form = useForm<MemorialFormData>({

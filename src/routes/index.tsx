@@ -49,7 +49,7 @@ function Hero() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-1.5 text-xs tracking-widest uppercase text-muted-foreground mb-8"
+          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-1.5 text-xs tracking-wide uppercase text-muted-foreground mb-8 max-w-[90vw] text-center"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent" />
           {th.badge}

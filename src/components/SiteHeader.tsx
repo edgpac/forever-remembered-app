@@ -18,9 +18,10 @@ export function SiteHeader() {
           <LangToggle />
           <Link
             to="/create"
-            className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-4 sm:px-5 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
           >
-            {t.header.create}
+            <span className="hidden sm:inline">{t.header.create}</span>
+            <span className="sm:hidden">+ Create</span>
           </Link>
         </div>
       </div>
