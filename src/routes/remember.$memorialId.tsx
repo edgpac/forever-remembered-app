@@ -20,7 +20,7 @@ const getMemorial = createServerFn({ method: "GET" })
     const { data: memorial, error } = await supabaseAdmin
       .from("memorials")
       .select(
-        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, insider_detail, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, want_people_to_know"
+        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, insider_detail, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, legacy_links, want_people_to_know"
       )
       .eq("memorial_id", data.memorialId)
       .maybeSingle();
@@ -290,6 +290,13 @@ function MemorialPage() {
           </FadeUp>
         )}
 
+        {/* Links & Legacy */}
+        {m.legacy_links && (m.legacy_links as Array<{ url: string; label?: string }>).length > 0 && (
+          <FadeUp className="max-w-2xl mx-auto px-6 pb-16">
+            <LinksSection links={m.legacy_links as Array<{ url: string; label?: string }>} />
+          </FadeUp>
+        )}
+
         {/* Leave a Memory */}
         <FadeUp className="max-w-2xl mx-auto px-6 pb-16">
           <LeaveMemorySection
@@ -369,6 +376,63 @@ function FactsSection({ m }: { m: Record<string, unknown> }) {
             <div className="text-sm text-foreground font-serif leading-snug">{f.value}</div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Links & Legacy ───────────────────────────────────────────────────────────
+
+const LEGACY_EMOJI: Record<string, string> = {
+  Instagram: "📸",
+  Facebook: "📘",
+  YouTube: "▶️",
+  TikTok: "🎵",
+  Website: "🌐",
+  "Book / Published Work": "📖",
+  "Film or TV": "🎬",
+  Music: "🎶",
+  "News Article": "📰",
+  "Memorial post": "🕯️",
+  "Sitio web": "🌐",
+  "Libro / Publicación": "📖",
+  "Cine o TV": "🎬",
+  "Artículo de prensa": "📰",
+  "Publicación memorial": "🕯️",
+  Other: "🔗",
+  Otro: "🔗",
+};
+
+function LinksSection({ links }: { links: Array<{ url: string; label?: string }> }) {
+  const { t } = useLang();
+  return (
+    <div>
+      <p className="memorial-eyebrow mb-5">{t.memorial.linksSectionLabel}</p>
+      <div className="space-y-3">
+        {links.map((link, i) => {
+          const label = link.label || "Link";
+          const emoji = LEGACY_EMOJI[label] ?? "🔗";
+          let hostname = "";
+          try { hostname = new URL(link.url).hostname.replace("www.", ""); } catch {}
+          return (
+            <a
+              key={i}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 rounded-2xl border border-border/70 bg-card/50 p-4 hover:border-accent/50 hover:shadow-warm transition group"
+            >
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-xl">
+                {emoji}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="memorial-eyebrow mb-0.5">{label}</div>
+                <div className="text-sm text-muted-foreground truncate font-serif">{hostname || link.url}</div>
+              </div>
+              <span className="text-muted-foreground group-hover:text-foreground transition text-lg flex-shrink-0">↗</span>
+            </a>
+          );
+        })}
       </div>
     </div>
   );

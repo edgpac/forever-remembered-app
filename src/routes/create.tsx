@@ -247,6 +247,7 @@ function CreateMemorial() {
       strongest_memory: "",
       want_people_to_know: "",
       music_links: [],
+      legacy_links: [],
       hometown: "",
       creator_relationship: "",
       miss_most: "",
@@ -312,6 +313,7 @@ function CreateMemorial() {
         portrait_url: v.portrait_url || null,
         creator_email: v.creator_email,
         music_links: v.music_links && v.music_links.length > 0 ? v.music_links : null,
+        legacy_links: v.legacy_links && v.legacy_links.length > 0 ? v.legacy_links : null,
       });
       if (error) throw error;
 
@@ -512,6 +514,127 @@ function Step1({ form }: FormProp) {
   );
 }
 
+// ─── Legacy Links shared field ────────────────────────────────────────────────
+
+const LEGACY_EMOJI: Record<string, string> = {
+  Instagram: "📸",
+  Facebook: "📘",
+  YouTube: "▶️",
+  TikTok: "🎵",
+  Website: "🌐",
+  "Book / Published Work": "📖",
+  "Film or TV": "🎬",
+  Music: "🎶",
+  "News Article": "📰",
+  "Memorial post": "🕯️",
+  "Sitio web": "🌐",
+  "Libro / Publicación": "📖",
+  "Cine o TV": "🎬",
+  "Artículo de prensa": "📰",
+  "Publicación memorial": "🕯️",
+  Other: "🔗",
+  Otro: "🔗",
+};
+
+type LegacyField = { id: string };
+type LegacyLinksFieldProps = {
+  fields: LegacyField[];
+  append: (v: { url: string; label: string }) => void;
+  remove: (i: number) => void;
+  register: UseFormReturn<MemorialFormData>["register"];
+  errors: UseFormReturn<MemorialFormData>["formState"]["errors"];
+  watch: UseFormReturn<MemorialFormData>["watch"];
+  setValue: UseFormReturn<MemorialFormData>["setValue"];
+  title: string;
+  hint: string;
+  labelOptions: string[];
+  addLabel: string;
+  removeLabel: string;
+  urlPlaceholder: string;
+  labelPlaceholder: string;
+  otherLabel: string;
+};
+
+function LegacyLinksField({
+  fields, append, remove, register, errors, watch,
+  title, hint, labelOptions, addLabel, removeLabel, urlPlaceholder, labelPlaceholder,
+}: LegacyLinksFieldProps) {
+  return (
+    <div>
+      <div className="text-sm font-medium text-foreground mb-0.5">{title}</div>
+      <div className="text-xs text-muted-foreground mb-3">{hint}</div>
+      <div className="space-y-3">
+        {fields.map((field, i) => {
+          const currentLabel = (watch(`legacy_links.${i}.label`) as string) ?? "";
+          return (
+            <div key={field.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs tracking-widest uppercase text-accent">
+                  {currentLabel ? `${LEGACY_EMOJI[currentLabel] ?? "🔗"} ${currentLabel}` : `Link ${i + 1}`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  className="text-xs text-muted-foreground hover:text-destructive transition"
+                >
+                  {removeLabel}
+                </button>
+              </div>
+              {/* Label pills */}
+              <div className="flex flex-wrap gap-1.5">
+                {labelOptions.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      const el = document.querySelector<HTMLInputElement>(`[data-legacy-label="${i}"]`);
+                      if (el) { el.value = opt; el.dispatchEvent(new Event("input", { bubbles: true })); }
+                    }}
+                    className={`rounded-full px-3 py-1 text-xs border transition-all duration-150 ${
+                      currentLabel === opt
+                        ? "border-accent bg-accent/15 text-foreground font-medium"
+                        : "border-border bg-muted/40 text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                    }`}
+                  >
+                    {LEGACY_EMOJI[opt] ?? "🔗"} {opt}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="url"
+                {...register(`legacy_links.${i}.url`)}
+                className={inputCls}
+                placeholder={urlPlaceholder}
+              />
+              {errors.legacy_links?.[i]?.url && (
+                <span className="block text-xs text-destructive">
+                  {errors.legacy_links[i]?.url?.message}
+                </span>
+              )}
+              <input
+                type="text"
+                data-legacy-label={i}
+                {...register(`legacy_links.${i}.label`)}
+                className={inputCls}
+                placeholder={labelPlaceholder}
+              />
+            </div>
+          );
+        })}
+      </div>
+      {fields.length < 5 && (
+        <button
+          type="button"
+          onClick={() => append({ url: "", label: "" })}
+          className="mt-3 w-full rounded-xl border-2 border-dashed border-border hover:border-accent/50 py-3 text-sm text-muted-foreground hover:text-foreground transition"
+        >
+          {addLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Step 2: Their story (person) ─────────────────────────────────────────────
 
 function PersonStep2({ form }: FormProp) {
@@ -520,6 +643,7 @@ function PersonStep2({ form }: FormProp) {
   const tp = t.create.step2Person;
   const tc = t.create;
   const { fields, append, remove } = useFieldArray({ control, name: "music_links" });
+  const { fields: legacyFields, append: legacyAppend, remove: legacyRemove } = useFieldArray({ control, name: "legacy_links" });
 
   return (
     <div className="space-y-8">
@@ -657,6 +781,25 @@ function PersonStep2({ form }: FormProp) {
           </button>
         )}
       </div>
+
+      {/* Links & Legacy */}
+      <LegacyLinksField
+        fields={legacyFields}
+        append={legacyAppend}
+        remove={legacyRemove}
+        register={register}
+        errors={errors}
+        watch={watch}
+        setValue={setValue}
+        title={tp.legacyTitle}
+        hint={tp.legacyHint}
+        labelOptions={tp.legacyLabelOptions}
+        addLabel={tp.legacyAdd}
+        removeLabel={tp.legacyRemove}
+        urlPlaceholder={tp.legacyUrlPlaceholder}
+        labelPlaceholder={tp.legacyLabelPlaceholder}
+        otherLabel={tc.otherOption}
+      />
     </div>
   );
 }
@@ -664,10 +807,11 @@ function PersonStep2({ form }: FormProp) {
 // ─── Step 2: Their story (pet) ────────────────────────────────────────────────
 
 function PetStep2({ form }: FormProp) {
-  const { register, watch, setValue, formState: { errors } } = form;
+  const { register, watch, setValue, control, formState: { errors } } = form;
   const { t } = useLang();
   const tp = t.create.step2Pet;
   const tc = t.create;
+  const { fields: legacyFields, append: legacyAppend, remove: legacyRemove } = useFieldArray({ control, name: "legacy_links" });
 
   return (
     <div className="space-y-8">
@@ -748,6 +892,25 @@ function PetStep2({ form }: FormProp) {
           placeholder={tp.wantPeoplePlaceholder}
         />
       </Field>
+
+      {/* Links & Legacy */}
+      <LegacyLinksField
+        fields={legacyFields}
+        append={legacyAppend}
+        remove={legacyRemove}
+        register={register}
+        errors={errors}
+        watch={watch}
+        setValue={setValue}
+        title={tp.legacyTitle}
+        hint={tp.legacyHint}
+        labelOptions={tp.legacyLabelOptions}
+        addLabel={tp.legacyAdd}
+        removeLabel={tp.legacyRemove}
+        urlPlaceholder={tp.legacyUrlPlaceholder}
+        labelPlaceholder={tp.legacyLabelPlaceholder}
+        otherLabel={tc.otherOption}
+      />
     </div>
   );
 }

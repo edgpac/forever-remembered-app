@@ -14,6 +14,11 @@ const musicLinkSchema = z.object({
   title: z.string().max(200).optional().or(z.literal("")),
 });
 
+const legacyLinkSchema = z.object({
+  url: z.string().url("Please enter a valid URL"),
+  label: z.string().max(100).optional().or(z.literal("")),
+});
+
 export const step2Schema = z.object({
   occupation: z.string().max(300).optional().or(z.literal("")),
   personality_words: z.string().max(200).optional().or(z.literal("")),
@@ -23,6 +28,7 @@ export const step2Schema = z.object({
   strongest_memory: z.string().max(1000).optional().or(z.literal("")),
   want_people_to_know: z.string().max(500).optional().or(z.literal("")),
   music_links: z.array(musicLinkSchema).max(5).default([]),
+  legacy_links: z.array(legacyLinkSchema).max(5).default([]),
 });
 
 export const step3Schema = z.object({
