@@ -246,6 +246,8 @@ function CreateMemorial() {
       catchphrase: "",
       strongest_memory: "",
       want_people_to_know: "",
+      smell: "",
+      pet_sound: "",
       music_links: [],
       legacy_links: [],
       hometown: "",
@@ -306,6 +308,8 @@ function CreateMemorial() {
         strongest_memory: v.strongest_memory || null,
         catchphrase: v.catchphrase || null,
         want_people_to_know: v.want_people_to_know || null,
+        smell: v.smell || null,
+        pet_sound: v.pet_sound || null,
         creator_relationship: v.creator_relationship || null,
         miss_most: v.miss_most || null,
         language: v.language,
@@ -649,23 +653,22 @@ function PersonStep2({ form }: FormProp) {
     <div className="space-y-8">
       <StepHeader eyebrow={tp.eyebrow} title={tp.title} sub={tp.sub} />
 
-      <Field label={tp.occupationLabel}>
+      <Field label={tp.handsLabel}>
         <MultiChoice
-          options={tp.occupationOptions}
+          options={tp.handsOptions}
           value={watch("occupation") ?? ""}
           onChange={(v) => setValue("occupation", v)}
-          placeholder={tp.occupationPlaceholder}
+          placeholder={tp.handsPlaceholder}
           otherLabel={tc.otherOption}
         />
       </Field>
 
-      <Field label={tp.personalityLabel}>
-        <MultiChoice
-          options={tp.personalityOptions}
-          value={watch("personality_words") ?? ""}
-          onChange={(v) => setValue("personality_words", v)}
+      <Field label={tp.personalityLabel} error={errors.personality_words?.message}>
+        <input
+          type="text"
+          {...register("personality_words")}
+          className={inputCls}
           placeholder={tp.personalityPlaceholder}
-          otherLabel={tc.otherOption}
         />
       </Field>
 
@@ -679,13 +682,11 @@ function PersonStep2({ form }: FormProp) {
         />
       </Field>
 
-      <Field label={tp.lovesLabel}>
-        <MultiChoice
-          options={tp.lovesOptions}
-          value={watch("loves") ?? ""}
-          onChange={(v) => setValue("loves", v)}
+      <Field label={tp.lovesLabel} error={errors.loves?.message}>
+        <textarea
+          {...register("loves")}
+          className={textareaCls}
           placeholder={tp.lovesPlaceholder}
-          otherLabel={tc.otherOption}
         />
       </Field>
 
@@ -694,7 +695,20 @@ function PersonStep2({ form }: FormProp) {
           type="text"
           {...register("catchphrase")}
           className={inputCls}
-          placeholder="Ya merito"
+          placeholder={tp.catchphrasePlaceholder}
+        />
+      </Field>
+
+      <Field
+        label={tp.smellLabel}
+        hint={tp.smellHint}
+        error={errors.smell?.message}
+      >
+        <input
+          type="text"
+          {...register("smell")}
+          className={inputCls}
+          placeholder={tp.smellPlaceholder}
         />
       </Field>
 
@@ -827,13 +841,12 @@ function PetStep2({ form }: FormProp) {
         />
       </Field>
 
-      <Field label={tp.personalityLabel}>
-        <MultiChoice
-          options={tp.personalityOptions}
-          value={watch("personality_words") ?? ""}
-          onChange={(v) => setValue("personality_words", v)}
+      <Field label={tp.personalityLabel} error={errors.personality_words?.message}>
+        <input
+          type="text"
+          {...register("personality_words")}
+          className={inputCls}
           placeholder={tp.personalityPlaceholder}
-          otherLabel={tc.otherOption}
         />
       </Field>
 
@@ -867,6 +880,28 @@ function PetStep2({ form }: FormProp) {
           {...register("catchphrase")}
           className={inputCls}
           placeholder={tp.habitPlaceholder}
+        />
+      </Field>
+
+      <Field
+        label={tp.petSoundLabel}
+        hint={tp.petSoundHint}
+        error={errors.pet_sound?.message}
+      >
+        <input
+          type="text"
+          {...register("pet_sound")}
+          className={inputCls}
+          placeholder={tp.petSoundPlaceholder}
+        />
+      </Field>
+
+      <Field label={tp.smellLabel} error={errors.smell?.message}>
+        <input
+          type="text"
+          {...register("smell")}
+          className={inputCls}
+          placeholder={tp.smellPlaceholder}
         />
       </Field>
 

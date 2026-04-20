@@ -23,41 +23,49 @@ function buildPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
 
   if (isPet) {
     push("Kind of animal", m.occupation as string);
-    push("Their personality", m.personality_words as string);
+    push("Three words that describe them", m.personality_words as string);
     push("The energy they brought to the home", m.insider_detail as string);
     push("What they loved most", m.loves as string);
     push("A funny or memorable habit", m.catchphrase as string);
-    push("Favorite moment together", m.strongest_memory as string);
+    push("Their sound — how they greeted their person", m.pet_sound as string);
+    push("What they smelled like", m.smell as string);
+    push("An ordinary moment the writer was memorizing without knowing it", m.strongest_memory as string);
   } else {
     push("Hometown", m.hometown as string);
-    push("What they did", m.occupation as string);
-    push("Their personality", m.personality_words as string);
+    push("What their hands looked like", m.occupation as string);
+    push("Three words those who loved them would use", m.personality_words as string);
     push("The energy they brought into a room", m.insider_detail as string);
-    push("What they loved most", m.loves as string);
-    push("A phrase or saying they always used", m.catchphrase as string);
-    push("Strongest memory the writer has of them", m.strongest_memory as string);
+    push("A regular Tuesday at their happiest — where and what", m.loves as string);
+    push("A phrase or sound they used so often you can still hear it", m.catchphrase as string);
+    push("What they smelled like", m.smell as string);
+    push("The moment, smell, sound, or image that comes first when you close your eyes", m.strongest_memory as string);
   }
 
   push("Writer's relationship to them", m.creator_relationship as string);
   push("What the writer misses most", m.miss_most as string);
-  push("What they would want people to know", m.want_people_to_know as string);
+  push("What they would whisper to everyone who stops here", m.want_people_to_know as string);
 
   const petInstructions = isPet
-    ? `If the subject is a pet, write from the pet's perspective — warm, tender, with a gentle sense of humor.
-Capture the specific animal's energy (e.g., a dog's devotion, a cat's quiet dignity). Keep dignity intact throughout.`
+    ? `Write from the pet's perspective — warm, tender, with a gentle sense of humor that fits their species.
+If a sound is given, find a way to weave it into the opening or closing. If a smell is given, use it as a sensory anchor.
+Capture the specific animal's devotion and personality. Keep dignity intact throughout.`
     : "";
 
-  return `You are writing a short memorial in the FIRST PERSON — as if the deceased themselves were speaking, looking back on their life with warmth, humor, and quiet honesty.
+  return `You are writing a short memorial in the FIRST PERSON — as if the person themselves were speaking, looking back on their life with warmth, honesty, and quiet humor.
 
 ${langInstruction}
 
 ${petInstructions}
 
-Tone: warm, dignified, intimate. Like a letter left behind. Use specific, sensory details from the facts below. Avoid clichés ("they were such a special soul", "gone too soon", "in a better place"). Avoid religious language unless it appears in the facts. Do not list facts as a CV — weave them into a story.
+THE GOAL: The narrative must feel like looking into a mirror. So specific and real that the family cries when they read it — not because it is sad, but because it sounds exactly like them. Generic emotional statements are failures. Sensory, particular details are the only currency.
 
-Length: 220–320 words, in 3–4 short paragraphs separated by blank lines. Start with a small, specific image or moment — never with "Hello, my name is" or "I was born in".
+Tone: warm, dignified, intimate. Like a letter left behind. Avoid clichés ("they were such a special soul", "gone too soon", "in a better place"). Avoid religious language unless it appears in the facts. Do not list facts as a CV — weave them into a lived moment.
 
-Use the catchphrase or habit if provided, naturally, once. Mention the writer's relationship. End with what they want people to know — turned into the speaker's own voice.
+Sensory rule: Every paragraph must contain at least one grounding sensory detail — a smell, a texture, a sound, a specific light, a physical gesture. The smell field and sound field, if provided, must each appear exactly once, naturally embedded.
+
+Length: 220–320 words, in 3–4 short paragraphs separated by blank lines. Start with a small, specific physical image or moment — never with "Hello, my name is" or "I was born in".
+
+Use the catchphrase or habit if provided, naturally, once. Mention the writer's relationship. End with the whisper — what they want people to know — turned into the speaker's own voice, not a declaration but a quiet truth.
 
 FACTS:
 ${facts.join("\n")}

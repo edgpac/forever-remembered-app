@@ -1,0 +1,3 @@
+ALTER TABLE public.memorials
+  ADD COLUMN IF NOT EXISTS smell TEXT,
+  ADD COLUMN IF NOT EXISTS pet_sound TEXT;

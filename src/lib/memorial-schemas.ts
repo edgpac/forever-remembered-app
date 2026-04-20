@@ -27,6 +27,8 @@ export const step2Schema = z.object({
   catchphrase: z.string().max(200).optional().or(z.literal("")),
   strongest_memory: z.string().max(1000).optional().or(z.literal("")),
   want_people_to_know: z.string().max(500).optional().or(z.literal("")),
+  smell: z.string().max(300).optional().or(z.literal("")),
+  pet_sound: z.string().max(200).optional().or(z.literal("")),
   music_links: z.array(musicLinkSchema).max(5).default([]),
   legacy_links: z.array(legacyLinkSchema).max(5).default([]),
 });

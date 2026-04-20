@@ -45,6 +45,8 @@ export type Database = {
           qr_card_url: string | null
           qr_png_url: string | null
           status: string
+          smell: string | null
+          pet_sound: string | null
           strongest_memory: string | null
           subject_type: string
           theme: string
@@ -78,6 +80,8 @@ export type Database = {
           occupation?: string | null
           passing_date?: string | null
           personality_words?: string | null
+          smell?: string | null
+          pet_sound?: string | null
           portrait_url?: string | null
           qr_card_url?: string | null
           qr_png_url?: string | null
@@ -119,6 +123,8 @@ export type Database = {
           qr_card_url?: string | null
           qr_png_url?: string | null
           status?: string
+          smell?: string | null
+          pet_sound?: string | null
           strongest_memory?: string | null
           subject_type?: string
           theme?: string
