@@ -10,7 +10,7 @@ type SitemapUrl = {
   priority: string;
 };
 
-export const Route = createFileRoute("/sitemap[.]xml" as never)({
+export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {

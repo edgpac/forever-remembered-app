@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateRouteImport } from './routes/create'
@@ -17,6 +18,11 @@ import { Route as RememberMemorialIdRouteImport } from './routes/remember.$memor
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiProcessMemorialRouteImport } from './routes/api/process-memorial'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/process-memorial': typeof ApiProcessMemorialRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/remember/$memorialId': typeof RememberMemorialIdRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/process-memorial': typeof ApiProcessMemorialRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/remember/$memorialId': typeof RememberMemorialIdRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/process-memorial': typeof ApiProcessMemorialRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/remember/$memorialId': typeof RememberMemorialIdRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/dashboard'
     | '/login'
+    | '/sitemap.xml'
     | '/api/process-memorial'
     | '/auth/callback'
     | '/remember/$memorialId'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/dashboard'
     | '/login'
+    | '/sitemap.xml'
     | '/api/process-memorial'
     | '/auth/callback'
     | '/remember/$memorialId'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/dashboard'
     | '/login'
+    | '/sitemap.xml'
     | '/api/process-memorial'
     | '/auth/callback'
     | '/remember/$memorialId'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiProcessMemorialRoute: typeof ApiProcessMemorialRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   RememberMemorialIdRoute: typeof RememberMemorialIdRoute
@@ -123,6 +136,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiProcessMemorialRoute: ApiProcessMemorialRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   RememberMemorialIdRoute: RememberMemorialIdRoute,
