@@ -193,7 +193,7 @@ function HeroSection({
         <p className="text-[11px] tracking-[0.35em] uppercase text-white/60 mb-2">
           {isPet ? tm.foreverInHearts : tm.inLovingMemory}
         </p>
-        <h1 className="font-display text-white leading-tight" style={{ fontSize: "clamp(2.2rem, 6vw, 5rem)" }}>
+        <h1 className="font-display text-white leading-tight" style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)" }}>
           {display}
           {isPet && <span className="ml-3 text-[0.7em]">🐾</span>}
         </h1>
