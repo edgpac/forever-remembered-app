@@ -257,14 +257,6 @@ function CreateMemorial() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  if (mode === null) return <ModeSelector onSelect={setMode} />;
-
-  const STEPS = [
-    { n: 1, label: lang === "es" ? "Quién" : "Who" },
-    { n: 2, label: lang === "es" ? "Historia" : "Story" },
-    { n: 3, label: lang === "es" ? "Final" : "Finish" },
-  ];
-
   const form = useForm<MemorialFormData>({
     mode: "onTouched",
     resolver: zodResolver(step1Schema.merge(step2Schema).merge(step3Schema) as never),
@@ -295,6 +287,14 @@ function CreateMemorial() {
       confirm_public: false as unknown as true,
     },
   });
+
+  if (mode === null) return <ModeSelector onSelect={setMode} />;
+
+  const STEPS = [
+    { n: 1, label: lang === "es" ? "Quién" : "Who" },
+    { n: 2, label: lang === "es" ? "Historia" : "Story" },
+    { n: 3, label: lang === "es" ? "Final" : "Finish" },
+  ];
 
   async function next() {
     const schema = STEP_SCHEMAS[step - 1];
