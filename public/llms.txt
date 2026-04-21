@@ -1,35 +1,42 @@
 # Forever Here — QRHeadstone
 
-> A QR memorial platform for people and pets. Families fill out a short form; their loved one's story is written in the first person — in that person's own voice. A QR code is created and can be placed on a headstone, ash vase, photo frame, or remembrance shrine. When someone scans it, they read the story as if the person themselves is speaking.
+> A QR story platform for people and pets. Families fill out a short form; a first-person narrative is written in that person's own voice. A QR code is created and can be placed on a headstone, ash vase, photo frame, remembrance shrine, memorial jersey, or any photo. When someone scans it, they read the story as if the person themselves is speaking.
 
 ## What it does
 
-- Families describe a loved one or pet through a guided form (personality, memories, relationships, favourite things)
-- A 4–6 paragraph first-person memorial story is crafted from those memories, in English, Spanish, or both
-- A QR code is created and linked permanently to the memorial page
-- The QR can be printed on sticker paper or engraved and placed on any physical memorial object
-- Visitors can leave memories and messages on the memorial page
-- Family can add photos, music links, and legacy links (social media, published work, etc.)
+- Families describe a loved one or pet through a guided form (personality, memories, relationships, sensory details)
+- A first-person narrative is written from those details, in English, Spanish, or both
+- A QR code is created and linked permanently to the story page
+- The QR can be printed on sticker paper or engraved and placed on any physical object — headstones, urns, frames, jerseys, benches, shirts
+- Visitors can leave memories and messages on the story page
+- Family can edit the narrative, add photos, music links, and legacy links (social media, published work, etc.)
+
+## Two modes
+
+- **In Memory Of** — for someone who has passed. Past-tense form, memorial tone, first-person narrative looking back on a life.
+- **Their Story** — for any living person or pet. Present-tense form, no date of passing, first-person narrative in the present tense. Designed to give any photo its voice — place the QR on the back of a photo, a frame, a canvas.
 
 ## Key pages
 
-- `/` — Landing page explaining the service
-- `/create` — Three-step form to create a memorial
-- `/remember/[id]` — Individual memorial page (public, scannable by anyone with the QR code)
+- `/` — Landing page
+- `/create` — Pre-step mode selection, then three-step form to create a memorial or story
+- `/remember/[id]` — Individual story page (public, scannable by anyone with the QR code)
+- `/sitemap.xml` — Dynamic sitemap of all active story pages
 
 ## Supported languages
 
-English and Spanish. Memorial stories can be written in either or both languages.
+English and Spanish. Narratives can be written in either or both languages.
 
 ## Who uses it
 
 - Families who have lost a loved one and want to create a lasting digital memorial
 - Pet owners who want to honor a companion animal
+- Anyone who wants to give a photo — of a grandparent, a parent, a friend — its own voice
 - Funeral homes looking to offer a modern memorial service
 
 ## Technology
 
-Built with TanStack Start, React, and Supabase (PostgreSQL + storage).
+Built with TanStack Start, React, Supabase (PostgreSQL + storage), and Anthropic Claude for narrative generation.
 
 ## Contact
 
