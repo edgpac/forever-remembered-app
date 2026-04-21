@@ -51,6 +51,15 @@ export const T = {
       step03Body: "Print on sticker paper or get it engraved, press it onto a headstone, an ash vase, a photo frame, a remembrance shrine, or a memorial t-shirt. Anywhere they are kept close.",
       examplesEyebrow: "Examples",
       examplesTitle: "Lives, remembered.",
+      photoTitle1: "Every photo has a story",
+      photoTitle2: "the image can't tell.",
+      photoBody:
+        "Print the QR code. Place it on the back of a photo, tape it to a frame, stick it on a canvas. Anyone who scans it meets the person or pet in the picture — in their own words. No void. Just life.",
+      photoLines: [
+        "On the back of any photo or canvas",
+        "On a frame, an urn, a jersey, a bench",
+        "Anywhere their image lives without their voice",
+      ],
       ctaTitle1: "Someone you loved",
       ctaTitle2: "deserves to be heard again.",
       ctaSub: "It takes about ten minutes. The QR card arrives in your inbox.",
@@ -301,6 +310,15 @@ export const T = {
       step03Body: "Imprímelo en papel adhesivo o mándalo grabar — pégalo en una lápida, una urna, un portarretratos, un altar o una camiseta memorial. Donde sea que los tengas cerca.",
       examplesEyebrow: "Ejemplos",
       examplesTitle: "Vidas, recordadas.",
+      photoTitle1: "Toda foto tiene una historia",
+      photoTitle2: "que la imagen no puede contar.",
+      photoBody:
+        "Imprime el código QR. Colócalo en el reverso de una foto, pégalo en un marco, fíjalo en un lienzo. Quien lo escanea conoce a la persona o mascota en la imagen — con sus propias palabras. Sin vacío. Solo vida.",
+      photoLines: [
+        "En el reverso de cualquier foto o lienzo",
+        "En un marco, una urna, una camiseta, un banco",
+        "Donde sea que su imagen vive sin su voz",
+      ],
       ctaTitle1: "Alguien que amaste",
       ctaTitle2: "merece ser escuchado de nuevo.",
       ctaSub: "Toma unos diez minutos. La tarjeta QR llega a tu correo.",

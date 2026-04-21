@@ -300,21 +300,19 @@ function Examples() {
 }
 
 function Placements() {
+  const { t } = useLang();
+  const th = t.home;
   return (
     <section className="bg-card border-t border-border/40">
       <div className="max-w-2xl mx-auto px-6 py-24 md:py-32">
         <h2 className="font-display text-4xl md:text-5xl leading-tight text-foreground">
-          Every photo has a story<br />the image can't tell.
+          {th.photoTitle1}<br />{th.photoTitle2}
         </h2>
         <p className="mt-8 font-serif text-lg text-muted-foreground leading-relaxed">
-          Print the QR code. Place it on the back of a photo, tape it to a frame, stick it on a canvas. Anyone who scans it meets the person or pet in the picture — in their own words. No void. Just life.
+          {th.photoBody}
         </p>
         <ul className="mt-10 space-y-4">
-          {[
-            "On the back of any photo or canvas",
-            "On a frame, an urn, a jersey, a bench",
-            "Anywhere their image lives without their voice",
-          ].map((line) => (
+          {th.photoLines.map((line) => (
             <li key={line} className="font-serif text-base text-foreground/70 flex items-baseline gap-3">
               <span className="text-accent shrink-0">—</span>
               {line}
@@ -326,7 +324,7 @@ function Placements() {
             to="/create"
             className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
           >
-            Begin a memorial
+            {th.ctaBtn}
             <span aria-hidden>→</span>
           </Link>
         </div>
