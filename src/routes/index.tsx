@@ -30,7 +30,6 @@ function Landing() {
       <Hero />
       <HowItWorks />
       <Examples />
-      <CTA />
       <Placements />
       <SiteFooter />
     </div>
@@ -322,29 +321,16 @@ function Placements() {
             </li>
           ))}
         </ul>
+        <div className="mt-12 flex justify-center">
+          <Link
+            to="/create"
+            className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
+          >
+            Begin a memorial
+            <span aria-hidden>→</span>
+          </Link>
+        </div>
       </div>
-    </section>
-  );
-}
-
-function CTA() {
-  const { t } = useLang();
-  const th = t.home;
-  return (
-    <section className="max-w-3xl mx-auto px-6 py-24 md:py-32 text-center">
-      <h2 className="font-display text-4xl md:text-5xl leading-tight text-accent italic">
-        {th.ctaTitle1}<br />{th.ctaTitle2}
-      </h2>
-      <p className="mt-6 text-muted-foreground font-serif text-lg">
-        {th.ctaSub}
-      </p>
-      <Link
-        to="/create"
-        className="mt-10 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
-      >
-        {th.ctaBtn}
-        <span aria-hidden>→</span>
-      </Link>
     </section>
   );
 }
