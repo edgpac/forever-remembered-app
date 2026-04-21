@@ -289,12 +289,16 @@ function CreateMemorial() {
       hometown: "",
       creator_relationship: "",
       miss_most: "",
-      language: "en",
+      language: lang,
       creator_email: "",
       confirm_passed: false as unknown as true,
       confirm_public: false as unknown as true,
     },
   });
+
+  useEffect(() => {
+    form.setValue("language", lang);
+  }, [lang, form]);
 
   if (mode === null) return <ModeSelector onSelect={setMode} />;
 
