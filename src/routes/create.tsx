@@ -103,9 +103,14 @@ function MultiChoice({
 // ─── Live Preview ─────────────────────────────────────────────────────────────
 
 function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mode: MemorialMode }) {
+  const { t } = useLang();
+  const tp = t.create.preview;
   const v = form.watch();
   const isPet = v.subject_type === "pet";
   const isStory = mode === "story";
+  const eyebrow = isStory
+    ? (isPet ? tp.eyebrowPetStory : tp.eyebrowStory)
+    : (isPet ? tp.eyebrowPetMemorial : tp.eyebrowMemorial);
   const display = v.full_name
     ? v.nickname
       ? `${v.full_name} "${v.nickname}"`
@@ -124,7 +129,7 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
   return (
     <div className="hidden lg:block">
       <div className="sticky top-8">
-        <div className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-4">Preview</div>
+        <div className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-4">{tp.label}</div>
         <div className="rounded-2xl border border-border bg-card shadow-warm overflow-hidden">
           {/* Portrait */}
           <div className="bg-candlelight px-8 pt-8 pb-6 text-center">
@@ -139,7 +144,7 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
             )}
             <div className="mt-5">
               <div className="text-[9px] tracking-[0.35em] uppercase text-accent">
-                {isPet ? "Forever in our hearts" : isStory ? "Their story" : "In loving memory"}
+                {eyebrow}
               </div>
               {display ? (
                 <div className="mt-1 font-display text-xl leading-tight">
@@ -170,13 +175,13 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
             )}
             {v.aura && (
               <div className="space-y-0.5">
-                <div className="text-[9px] tracking-widest uppercase text-muted-foreground">Their energy</div>
+                <div className="text-[9px] tracking-widest uppercase text-muted-foreground">{tp.theirEnergy}</div>
                 <div className="text-xs text-foreground font-serif italic">"{v.aura.split(" — ")[0]}"</div>
               </div>
             )}
             {lovesChips.length > 0 && (
               <div className="space-y-0.5">
-                <div className="text-[9px] tracking-widest uppercase text-muted-foreground">Loved</div>
+                <div className="text-[9px] tracking-widest uppercase text-muted-foreground">{tp.loved}</div>
                 <div className="text-xs text-foreground font-serif">{lovesChips.join(" · ")}</div>
               </div>
             )}
@@ -187,14 +192,16 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
             )}
             {!display && !personalityChips.length && (
               <p className="text-[11px] text-muted-foreground text-center py-2 font-serif italic">
-                {isStory ? "Their story will take shape as you fill in the form." : "Your memorial will take shape as you fill in the form."}
+                {isStory ? tp.placeholderStory : tp.placeholderMemorial}
               </p>
             )}
           </div>
 
           {/* Story placeholder */}
           <div className="px-6 pb-6 border-t border-border pt-4">
-            <div className="text-[9px] tracking-widest uppercase text-muted-foreground mb-2">{isStory ? "Their story" : "Their memorial"}</div>
+            <div className="text-[9px] tracking-widest uppercase text-muted-foreground mb-2">
+              {isStory ? tp.sectionStory : tp.sectionMemorial}
+            </div>
             <div className="space-y-1.5">
               {[100, 85, 92, 70].map((w, i) => (
                 <div
@@ -205,7 +212,7 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
               ))}
             </div>
             <div className="mt-3 text-[10px] text-muted-foreground text-center font-serif italic">
-              Written in their voice after you submit.
+              {tp.writtenAfter}
             </div>
           </div>
         </div>
