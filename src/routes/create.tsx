@@ -102,9 +102,10 @@ function MultiChoice({
 
 // ─── Live Preview ─────────────────────────────────────────────────────────────
 
-function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
+function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mode: MemorialMode }) {
   const v = form.watch();
   const isPet = v.subject_type === "pet";
+  const isStory = mode === "story";
   const display = v.full_name
     ? v.nickname
       ? `${v.full_name} "${v.nickname}"`
@@ -138,7 +139,7 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
             )}
             <div className="mt-5">
               <div className="text-[9px] tracking-[0.35em] uppercase text-accent">
-                {isPet ? "Forever in our hearts" : "In loving memory"}
+                {isPet ? "Forever in our hearts" : isStory ? "Their story" : "In loving memory"}
               </div>
               {display ? (
                 <div className="mt-1 font-display text-xl leading-tight">
@@ -186,14 +187,14 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
             )}
             {!display && !personalityChips.length && (
               <p className="text-[11px] text-muted-foreground text-center py-2 font-serif italic">
-                Your memorial will take shape as you fill in the form.
+                {isStory ? "Their story will take shape as you fill in the form." : "Your memorial will take shape as you fill in the form."}
               </p>
             )}
           </div>
 
           {/* Story placeholder */}
           <div className="px-6 pb-6 border-t border-border pt-4">
-            <div className="text-[9px] tracking-widest uppercase text-muted-foreground mb-2">Their story</div>
+            <div className="text-[9px] tracking-widest uppercase text-muted-foreground mb-2">{isStory ? "Their story" : "Their memorial"}</div>
             <div className="space-y-1.5">
               {[100, 85, 92, 70].map((w, i) => (
                 <div
@@ -425,7 +426,7 @@ function CreateMemorial() {
             </div>
           </div>
 
-          <LivePreview form={form} />
+          <LivePreview form={form} mode={mode!} />
         </div>
       </main>
     </div>
