@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { getRequestIP } from "@tanstack/start-server-core";
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +12,8 @@ import {
   type MemorialFormData,
 } from "@/lib/memorial-schemas";
 import { generateMemorialId } from "@/lib/memorial";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { checkIpRateLimit } from "@/lib/rate-limit";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PortraitUpload } from "@/components/PortraitUpload";
 import { useLang } from "@/lib/language-context";
@@ -26,6 +29,60 @@ export const Route = createFileRoute("/create")({
 });
 
 const STEP_SCHEMAS = [step1Schema, step2Schema, step3Schema];
+
+// ─── Server action: rate-limited insert ──────────────────────────────────────
+
+type InsertPayload = {
+  memorialId: string;
+  mode: string;
+  v: MemorialFormData;
+};
+
+const insertMemorial = createServerFn({ method: "POST" })
+  .inputValidator((d: InsertPayload) => d)
+  .handler(async ({ data }) => {
+    const ip =
+      getRequestIP({ xForwardedFor: true }) ?? "unknown";
+
+    const { allowed } = await checkIpRateLimit(ip);
+    if (!allowed) {
+      throw new Error(
+        "You've created several memorials recently — please wait an hour before creating more."
+      );
+    }
+
+    const { v, memorialId, mode } = data;
+    const { error } = await supabaseAdmin.from("memorials").insert({
+      memorial_id: memorialId,
+      status: "generating",
+      memorial_mode: mode,
+      subject_type: v.subject_type,
+      full_name: v.full_name,
+      nickname: v.nickname || null,
+      birth_date: v.birth_date || null,
+      passing_date: v.passing_date || null,
+      hometown: v.hometown || null,
+      occupation: v.occupation || null,
+      personality_words: v.personality_words || null,
+      insider_detail: v.aura || null,
+      loves: v.loves || null,
+      strongest_memory: v.strongest_memory || null,
+      catchphrase: v.catchphrase || null,
+      want_people_to_know: v.want_people_to_know || null,
+      smell: v.smell || null,
+      pet_sound: v.pet_sound || null,
+      creator_relationship: v.creator_relationship || null,
+      miss_most: v.miss_most || null,
+      language: v.language,
+      theme: "classic",
+      portrait_url: v.portrait_url || null,
+      creator_email: v.creator_email,
+      music_links: v.music_links?.length ? v.music_links : null,
+      legacy_links: v.legacy_links?.length ? v.legacy_links : null,
+    });
+    if (error) throw new Error(error.message);
+    return { memorialId };
+  });
 
 // ─── MultiChoice ─────────────────────────────────────────────────────────────
 
@@ -343,35 +400,8 @@ function CreateMemorial() {
     try {
       const v = form.getValues();
       const memorialId = generateMemorialId();
-      const { error } = await supabase.from("memorials").insert({
-        memorial_id: memorialId,
-        status: "generating",
-        memorial_mode: mode!,
-        subject_type: v.subject_type,
-        full_name: v.full_name,
-        nickname: v.nickname || null,
-        birth_date: v.birth_date || null,
-        passing_date: v.passing_date || null,
-        hometown: v.hometown || null,
-        occupation: v.occupation || null,
-        personality_words: v.personality_words || null,
-        insider_detail: v.aura || null,
-        loves: v.loves || null,
-        strongest_memory: v.strongest_memory || null,
-        catchphrase: v.catchphrase || null,
-        want_people_to_know: v.want_people_to_know || null,
-        smell: v.smell || null,
-        pet_sound: v.pet_sound || null,
-        creator_relationship: v.creator_relationship || null,
-        miss_most: v.miss_most || null,
-        language: v.language,
-        theme: "classic",
-        portrait_url: v.portrait_url || null,
-        creator_email: v.creator_email,
-        music_links: v.music_links && v.music_links.length > 0 ? v.music_links : null,
-        legacy_links: v.legacy_links && v.legacy_links.length > 0 ? v.legacy_links : null,
-      });
-      if (error) throw error;
+
+      await insertMemorial({ data: { memorialId, mode: mode!, v } });
 
       void fetch("/api/process-memorial", {
         method: "POST",
