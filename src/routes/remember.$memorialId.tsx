@@ -201,14 +201,14 @@ function HeroSection({
   display,
   years,
 }: {
-  m: { portrait_url: string | null; subject_type: string; creator_relationship: string | null; memorial_mode: string };
+  m: { portrait_url: string | null; subject_type: string; creator_relationship: string | null; memorial_mode: string | null };
   display: string;
   years: string;
 }) {
   const { t } = useLang();
   const tm = t.memorial;
   const isPet = m.subject_type === "pet";
-  const isStory = m.memorial_mode === "story";
+  const isStory = (m.memorial_mode ?? "memorial") === "story";
 
   return (
     <div className="memorial-hero">
@@ -362,7 +362,7 @@ function MemorialPage() {
         <div className="pb-12 text-center text-sm text-muted-foreground">
           {m.creator_relationship && (
             <p className="font-serif italic">
-              {m.memorial_mode === "story" ? tm.storySharedBy : tm.rememberByPrefix} {m.creator_relationship}
+              {(m.memorial_mode ?? "memorial") === "story" ? tm.storySharedBy : tm.rememberByPrefix} {m.creator_relationship}
             </p>
           )}
           <Link to="/" className="mt-4 inline-block hover:text-foreground transition text-xs tracking-widest uppercase">
@@ -664,14 +664,14 @@ function QRSection({
   years,
   memorialUrl,
 }: {
-  m: { qr_png_url: string | null; memorial_id: string; full_name: string; memorial_mode: string };
+  m: { qr_png_url: string | null; memorial_id: string; full_name: string; memorial_mode: string | null };
   display: string;
   years: string;
   memorialUrl: string;
 }) {
   const { t } = useLang();
   const tm = t.memorial;
-  const isStory = m.memorial_mode === "story";
+  const isStory = (m.memorial_mode ?? "memorial") === "story";
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
