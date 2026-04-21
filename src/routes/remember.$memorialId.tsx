@@ -94,9 +94,15 @@ export const Route = createFileRoute("/remember/$memorialId")({
     const m = loaderData?.memorial;
     if (!m) return {};
     const display = m.nickname ? `${m.full_name} "${m.nickname}"` : m.full_name;
-    const desc =
-      (m.narrative_en || m.narrative_es || "")?.slice(0, 150) ||
-      `A memorial for ${m.full_name} on Forever Here.`;
+    const isStory = (m.memorial_mode ?? "memorial") === "story";
+    const fallback = isStory
+      ? `Their story — ${display} · Forever Here`
+      : `In loving memory of ${display} · Forever Here`;
+    const narrative = (m.narrative_en || m.narrative_es || "").trim();
+    const desc = narrative ? narrative.slice(0, 150) + (narrative.length > 150 ? "…" : "") : fallback;
+    const title = isStory
+      ? `Their story — ${display} · Forever Here`
+      : `In loving memory of ${display} · Forever Here`;
     const pageUrl = `https://www.qrheadstone.com/remember/${m.memorial_id}`;
 
     const jsonLd = {
@@ -114,9 +120,9 @@ export const Route = createFileRoute("/remember/$memorialId")({
 
     return {
       meta: [
-        { title: `${display} — Forever Here` },
+        { title },
         { name: "description", content: desc },
-        { property: "og:title", content: `${display} — Forever Here` },
+        { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:url", content: pageUrl },
         { property: "og:type", content: "profile" },
