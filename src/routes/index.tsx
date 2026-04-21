@@ -109,7 +109,7 @@ function Hero() {
             <div className="w-full max-w-sm rounded-2xl bg-foreground text-background shadow-warm overflow-hidden">
               {/* Card header */}
               <div className="flex items-center justify-between px-7 pt-7 pb-5">
-                <span className="text-accent text-[10px] tracking-[0.35em] uppercase font-medium">
+                <span className="text-primary text-[10px] tracking-[0.35em] uppercase font-medium">
                   Forever Here
                 </span>
                 <span className="text-[10px] tracking-widest uppercase text-background/40">
@@ -180,7 +180,7 @@ function HowItWorks() {
 
           {/* Text */}
           <div>
-            <div className="text-xs tracking-[0.3em] uppercase text-accent mb-4">{th.howEyebrow}</div>
+            <div className="text-xs tracking-[0.3em] uppercase text-primary mb-4">{th.howEyebrow}</div>
             <h2 className="font-display text-4xl md:text-5xl leading-tight text-accent italic">
               {th.howTitle1}<br />
               {th.howTitle2}
