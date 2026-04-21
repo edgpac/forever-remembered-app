@@ -305,7 +305,7 @@ function CTA() {
   return (
     <section className="max-w-3xl mx-auto px-6 py-24 md:py-32 text-center">
       <h2 className="font-display text-4xl md:text-5xl leading-tight text-accent italic">
-        {th.ctaTitle1}<br /><strong>{th.ctaTitle2}</strong>
+        {th.ctaTitle1}<br />{th.ctaTitle2}
       </h2>
       <p className="mt-6 text-muted-foreground font-serif text-lg">
         {th.ctaSub}
