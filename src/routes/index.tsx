@@ -300,40 +300,28 @@ function Examples() {
   );
 }
 
-const PLACEMENT_ITEMS = [
-  { emoji: "🖼️", label: "Photo frame", desc: "Hang it next to their portrait at home" },
-  { emoji: "⚱️", label: "Urn or ashes box", desc: "Let it rest where they rest" },
-  { emoji: "🏀", label: "Memorial jersey", desc: "Worn at the annual game in their honor" },
-  { emoji: "🪑", label: "The empty chair", desc: "Their seat at every family gathering" },
-  { emoji: "🌳", label: "Memorial bench or tree", desc: "For the places they loved most" },
-  { emoji: "👕", label: "Celebration of life", desc: "Print it on a shirt, display it at the service" },
-];
-
 function Placements() {
   return (
-    <section className="bg-candlelight border-t border-border/40">
-      <div className="max-w-5xl mx-auto px-6 py-20 md:py-28">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 divide-y sm:divide-y-0 divide-border/50">
-          {PLACEMENT_ITEMS.map((item, i) => (
-            <div
-              key={item.label}
-              className={[
-                "flex items-start gap-4 px-6 py-8",
-                i % 3 !== 2 ? "md:border-r md:border-border/50" : "",
-                i < 3 ? "md:border-b md:border-border/50" : "",
-              ].join(" ")}
-            >
-              <span className="text-xl leading-none mt-0.5 shrink-0 opacity-70">{item.emoji}</span>
-              <div>
-                <div className="text-sm font-semibold tracking-wide text-foreground mb-1">{item.label}</div>
-                <p className="text-sm text-muted-foreground font-serif leading-relaxed">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="mt-12 text-center text-sm font-serif italic text-muted-foreground/70">
-          Not just for headstones. Wherever their memory lives, the QR code lives too.
+    <section className="bg-card border-t border-border/40">
+      <div className="max-w-2xl mx-auto px-6 py-24 md:py-32">
+        <h2 className="font-display text-4xl md:text-5xl leading-tight text-foreground">
+          Every photo has a story<br />the image can't tell.
+        </h2>
+        <p className="mt-8 font-serif text-lg text-muted-foreground leading-relaxed">
+          Print the QR code. Place it on the back of a photo, tape it to a frame, stick it on a canvas. Anyone who scans it meets the person or pet in the picture — in their own words. No void. Just life.
         </p>
+        <ul className="mt-10 space-y-4">
+          {[
+            "On the back of any photo or canvas",
+            "On a frame, an urn, a jersey, a bench",
+            "Anywhere their image lives without their voice",
+          ].map((line) => (
+            <li key={line} className="font-serif text-base text-foreground/70 flex items-baseline gap-3">
+              <span className="text-accent shrink-0">—</span>
+              {line}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
