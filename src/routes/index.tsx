@@ -31,6 +31,7 @@ function Landing() {
       <HowItWorks />
       <Examples />
       <CTA />
+      <Placements />
       <SiteFooter />
     </div>
   );
@@ -294,6 +295,39 @@ function Examples() {
             </div>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+const PLACEMENT_ITEMS = [
+  { emoji: "🖼️", label: "Photo frame", desc: "Hang it next to their portrait at home" },
+  { emoji: "⚱️", label: "Urn or ashes box", desc: "Let it rest where they rest" },
+  { emoji: "🏀", label: "Memorial jersey", desc: "Worn at the annual game in their honor" },
+  { emoji: "🪑", label: "The empty chair", desc: "Their seat at every family gathering" },
+  { emoji: "🌳", label: "Memorial bench or tree", desc: "For the places they loved most" },
+  { emoji: "👕", label: "Celebration of life", desc: "Print it on a shirt, display it at the service" },
+];
+
+function Placements() {
+  return (
+    <section className="bg-candlelight border-t border-border/40">
+      <div className="max-w-5xl mx-auto px-6 py-20 md:py-28">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {PLACEMENT_ITEMS.map((item) => (
+            <div
+              key={item.label}
+              className="rounded-2xl border border-border bg-card px-6 py-7 text-center"
+            >
+              <div className="text-4xl mb-3">{item.emoji}</div>
+              <div className="font-display text-base font-semibold text-foreground mb-1">{item.label}</div>
+              <p className="text-sm text-muted-foreground font-serif leading-snug">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-10 text-center text-sm font-serif italic text-muted-foreground">
+          Not just for headstones. Wherever their memory lives, the QR code lives too.
+        </p>
       </div>
     </section>
   );
