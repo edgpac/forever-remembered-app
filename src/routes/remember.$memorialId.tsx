@@ -20,7 +20,7 @@ const getMemorial = createServerFn({ method: "GET" })
     const { data: memorial, error } = await supabaseAdmin
       .from("memorials")
       .select(
-        "memorial_id, status, subject_type, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, insider_detail, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, legacy_links, want_people_to_know"
+        "memorial_id, status, subject_type, memorial_mode, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, insider_detail, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, legacy_links, want_people_to_know"
       )
       .eq("memorial_id", data.memorialId)
       .maybeSingle();
@@ -201,13 +201,14 @@ function HeroSection({
   display,
   years,
 }: {
-  m: { portrait_url: string | null; subject_type: string; creator_relationship: string | null };
+  m: { portrait_url: string | null; subject_type: string; creator_relationship: string | null; memorial_mode: string };
   display: string;
   years: string;
 }) {
   const { t } = useLang();
   const tm = t.memorial;
   const isPet = m.subject_type === "pet";
+  const isStory = m.memorial_mode === "story";
 
   return (
     <div className="memorial-hero">
@@ -235,7 +236,7 @@ function HeroSection({
       {/* Name & dates — bottom-right editorial block */}
       <div className="memorial-hero-text">
         <p className="text-[11px] tracking-[0.35em] uppercase text-white/60 mb-2">
-          {isPet ? tm.foreverInHearts : tm.inLovingMemory}
+          {isStory ? tm.storyEyebrow : isPet ? tm.foreverInHearts : tm.inLovingMemory}
         </p>
         <h1 className="font-display text-white leading-tight" style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)" }}>
           {display}
@@ -360,7 +361,9 @@ function MemorialPage() {
         {/* Footer note */}
         <div className="pb-12 text-center text-sm text-muted-foreground">
           {m.creator_relationship && (
-            <p className="font-serif italic">{tm.rememberByPrefix} {m.creator_relationship}</p>
+            <p className="font-serif italic">
+              {m.memorial_mode === "story" ? tm.storySharedBy : tm.rememberByPrefix} {m.creator_relationship}
+            </p>
           )}
           <Link to="/" className="mt-4 inline-block hover:text-foreground transition text-xs tracking-widest uppercase">
             {tm.createOwn}
@@ -661,13 +664,14 @@ function QRSection({
   years,
   memorialUrl,
 }: {
-  m: { qr_png_url: string | null; memorial_id: string; full_name: string };
+  m: { qr_png_url: string | null; memorial_id: string; full_name: string; memorial_mode: string };
   display: string;
   years: string;
   memorialUrl: string;
 }) {
   const { t } = useLang();
   const tm = t.memorial;
+  const isStory = m.memorial_mode === "story";
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
@@ -782,7 +786,7 @@ function QRSection({
 
   return (
     <div className="keepsake-card text-center">
-      <p className="memorial-eyebrow mb-5">{tm.shareTitle}</p>
+      <p className="memorial-eyebrow mb-5">{isStory ? tm.shareStoryTitle : tm.shareTitle}</p>
 
       {m.qr_png_url ? (
         <img
