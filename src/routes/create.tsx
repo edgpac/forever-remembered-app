@@ -41,17 +41,20 @@ type InsertPayload = {
 const insertMemorial = createServerFn({ method: "POST" })
   .inputValidator((d: InsertPayload) => d)
   .handler(async ({ data }) => {
-    const ip =
-      getRequestIP({ xForwardedFor: true }) ?? "unknown";
+    const { v, memorialId, mode } = data;
+    const ownerEmail = process.env.OWNER_EMAIL;
+    const isOwner = ownerEmail && v.creator_email.trim().toLowerCase() === ownerEmail.trim().toLowerCase();
 
-    const { allowed } = await checkIpRateLimit(ip);
-    if (!allowed) {
-      throw new Error(
-        "You've created several memorials recently — please wait an hour before creating more."
-      );
+    if (!isOwner) {
+      const ip = getRequestIP({ xForwardedFor: true }) ?? "unknown";
+      const { allowed } = await checkIpRateLimit(ip);
+      if (!allowed) {
+        throw new Error(
+          "You've created several memorials recently — please wait an hour before creating more."
+        );
+      }
     }
 
-    const { v, memorialId, mode } = data;
     const { error } = await supabaseAdmin.from("memorials").insert({
       memorial_id: memorialId,
       status: "generating",
