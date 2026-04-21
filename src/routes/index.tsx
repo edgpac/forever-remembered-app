@@ -313,19 +313,25 @@ function Placements() {
   return (
     <section className="bg-candlelight border-t border-border/40">
       <div className="max-w-5xl mx-auto px-6 py-20 md:py-28">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {PLACEMENT_ITEMS.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 divide-y sm:divide-y-0 divide-border/50">
+          {PLACEMENT_ITEMS.map((item, i) => (
             <div
               key={item.label}
-              className="rounded-2xl border border-border bg-card px-6 py-7 text-center"
+              className={[
+                "flex items-start gap-4 px-6 py-8",
+                i % 3 !== 2 ? "md:border-r md:border-border/50" : "",
+                i < 3 ? "md:border-b md:border-border/50" : "",
+              ].join(" ")}
             >
-              <div className="text-4xl mb-3">{item.emoji}</div>
-              <div className="font-display text-base font-semibold text-foreground mb-1">{item.label}</div>
-              <p className="text-sm text-muted-foreground font-serif leading-snug">{item.desc}</p>
+              <span className="text-xl leading-none mt-0.5 shrink-0 opacity-70">{item.emoji}</span>
+              <div>
+                <div className="text-sm font-semibold tracking-wide text-foreground mb-1">{item.label}</div>
+                <p className="text-sm text-muted-foreground font-serif leading-relaxed">{item.desc}</p>
+              </div>
             </div>
           ))}
         </div>
-        <p className="mt-10 text-center text-sm font-serif italic text-muted-foreground">
+        <p className="mt-12 text-center text-sm font-serif italic text-muted-foreground/70">
           Not just for headstones. Wherever their memory lives, the QR code lives too.
         </p>
       </div>
