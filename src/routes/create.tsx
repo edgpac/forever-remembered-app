@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -215,13 +215,49 @@ function LivePreview({ form }: { form: UseFormReturn<MemorialFormData> }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+function ModeSelector({ onSelect }: { onSelect: (mode: MemorialMode) => void }) {
+  const { t } = useLang();
+  const ts = t.create.step0;
+  const modes: { key: MemorialMode; label: string; sub: string }[] = [
+    { key: "memorial", label: ts.memorialLabel, sub: ts.memorialSub },
+    { key: "story", label: ts.storyLabel, sub: ts.storySub },
+  ];
+  return (
+    <div className="min-h-screen flex flex-col bg-candlelight">
+      <SiteHeader />
+      <main className="flex-1 max-w-3xl w-full mx-auto px-6 py-20 md:py-28 flex flex-col justify-center">
+        <div className="mb-12">
+          <div className="text-xs tracking-[0.3em] uppercase text-accent mb-3">{ts.eyebrow}</div>
+          <h1 className="font-display text-4xl md:text-5xl leading-tight">{ts.title}</h1>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {modes.map(({ key, label, sub }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelect(key)}
+              className="rounded-2xl border-2 border-border bg-card px-8 py-10 text-left hover:border-accent/60 hover:bg-accent/5 transition group"
+            >
+              <div className="font-display text-2xl mb-3 group-hover:text-accent transition">{label}</div>
+              <div className="text-sm text-muted-foreground font-serif leading-relaxed">{sub}</div>
+            </button>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
 function CreateMemorial() {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const tc = t.create;
+  const [mode, setMode] = useState<MemorialMode | null>(null);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  if (mode === null) return <ModeSelector onSelect={setMode} />;
 
   const STEPS = [
     { n: 1, label: lang === "es" ? "Quién" : "Who" },
@@ -280,7 +316,10 @@ function CreateMemorial() {
   }
 
   function back() {
-    if (step > 1) {
+    if (step === 1) {
+      setMode(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
       setStep(step - 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -295,6 +334,7 @@ function CreateMemorial() {
       const { error } = await supabase.from("memorials").insert({
         memorial_id: memorialId,
         status: "generating",
+        memorial_mode: mode!,
         subject_type: v.subject_type,
         full_name: v.full_name,
         nickname: v.nickname || null,
@@ -350,9 +390,9 @@ function CreateMemorial() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
               >
-                {step === 1 && <Step1 form={form} />}
-                {step === 2 && <Step2 form={form} />}
-                {step === 3 && <Step3 form={form} />}
+                {step === 1 && <Step1 form={form} mode={mode!} />}
+                {step === 2 && <Step2 form={form} mode={mode!} />}
+                {step === 3 && <Step3 form={form} mode={mode!} />}
               </motion.div>
             </AnimatePresence>
 
@@ -448,11 +488,12 @@ const inputCls =
   "w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition";
 const textareaCls = inputCls + " min-h-[120px] resize-y font-serif leading-relaxed";
 
-type FormProp = { form: UseFormReturn<MemorialFormData> };
+type MemorialMode = "memorial" | "story";
+type FormProp = { form: UseFormReturn<MemorialFormData>; mode: MemorialMode };
 
 // ─── Step 1: Who ──────────────────────────────────────────────────────────────
 
-function Step1({ form }: FormProp) {
+function Step1({ form, mode }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
   const { t } = useLang();
   const ts = t.create.step1;
@@ -506,13 +547,15 @@ function Step1({ form }: FormProp) {
         />
       </Field>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className={`grid gap-4 ${mode === "memorial" ? "sm:grid-cols-2" : ""}`}>
         <Field label={ts.birthDate} error={errors.birth_date?.message}>
           <input type="date" {...register("birth_date")} className={inputCls} />
         </Field>
-        <Field label={ts.passingDate} error={errors.passing_date?.message}>
-          <input type="date" {...register("passing_date")} className={inputCls} />
-        </Field>
+        {mode === "memorial" && (
+          <Field label={ts.passingDate} error={errors.passing_date?.message}>
+            <input type="date" {...register("passing_date")} className={inputCls} />
+          </Field>
+        )}
       </div>
     </div>
   );
@@ -641,11 +684,12 @@ function LegacyLinksField({
 
 // ─── Step 2: Their story (person) ─────────────────────────────────────────────
 
-function PersonStep2({ form }: FormProp) {
+function PersonStep2({ form, mode }: FormProp) {
   const { register, watch, setValue, control, formState: { errors } } = form;
   const { t } = useLang();
   const tp = t.create.step2Person;
   const tc = t.create;
+  const isStory = mode === "story";
   const { fields, append, remove } = useFieldArray({ control, name: "music_links" });
   const { fields: legacyFields, append: legacyAppend, remove: legacyRemove } = useFieldArray({ control, name: "legacy_links" });
 
@@ -653,7 +697,7 @@ function PersonStep2({ form }: FormProp) {
     <div className="space-y-8">
       <StepHeader eyebrow={tp.eyebrow} title={tp.title} sub={tp.sub} />
 
-      <Field label={tp.handsLabel}>
+      <Field label={isStory ? tp.handsLabelStory : tp.handsLabel}>
         <MultiChoice
           options={tp.handsOptions}
           value={watch("occupation") ?? ""}
@@ -690,7 +734,7 @@ function PersonStep2({ form }: FormProp) {
         />
       </Field>
 
-      <Field label={tp.catchphraseLabel} error={errors.catchphrase?.message}>
+      <Field label={isStory ? tp.catchphraseLabelStory : tp.catchphraseLabel} error={errors.catchphrase?.message}>
         <input
           type="text"
           {...register("catchphrase")}
@@ -700,7 +744,7 @@ function PersonStep2({ form }: FormProp) {
       </Field>
 
       <Field
-        label={tp.smellLabel}
+        label={isStory ? tp.smellLabelStory : tp.smellLabel}
         hint={tp.smellHint}
         error={errors.smell?.message}
       >
@@ -820,7 +864,7 @@ function PersonStep2({ form }: FormProp) {
 
 // ─── Step 2: Their story (pet) ────────────────────────────────────────────────
 
-function PetStep2({ form }: FormProp) {
+function PetStep2({ form, mode: _mode }: FormProp) {
   const { register, watch, setValue, control, formState: { errors } } = form;
   const { t } = useLang();
   const tp = t.create.step2Pet;
@@ -951,20 +995,25 @@ function PetStep2({ form }: FormProp) {
   );
 }
 
-function Step2({ form }: FormProp) {
+function Step2({ form, mode }: FormProp) {
   const subject = form.watch("subject_type");
-  return subject === "pet" ? <PetStep2 form={form} /> : <PersonStep2 form={form} />;
+  return subject === "pet" ? <PetStep2 form={form} mode={mode} /> : <PersonStep2 form={form} mode={mode} />;
 }
 
 // ─── Step 3: Finish ───────────────────────────────────────────────────────────
 
-function Step3({ form }: FormProp) {
+function Step3({ form, mode }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
   const { t } = useLang();
   const ts = t.create.step3;
   const tc = t.create;
   const language = watch("language");
   const isPet = watch("subject_type") === "pet";
+  const isStory = mode === "story";
+
+  useEffect(() => {
+    if (isStory) setValue("confirm_passed", true as unknown as true);
+  }, [isStory, setValue]);
 
   return (
     <div className="space-y-8">
@@ -981,7 +1030,9 @@ function Step3({ form }: FormProp) {
       </Field>
 
       <Field
-        label={isPet ? ts.missPetLabel : ts.missLabel}
+        label={isPet
+          ? (isStory ? ts.missPetLabelStory : ts.missPetLabel)
+          : (isStory ? ts.missLabelStory : ts.missLabel)}
         error={errors.miss_most?.message}
       >
         <textarea
@@ -1022,21 +1073,23 @@ function Step3({ form }: FormProp) {
       </Field>
 
       <div className="space-y-3 pt-2">
-        <label className="flex items-start gap-3 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            {...register("confirm_passed")}
-            className="mt-1 w-4 h-4 rounded border-border text-accent focus:ring-accent/40"
-          />
-          <span className="text-foreground">
-            {ts.confirmPassedLabel}
-            {errors.confirm_passed?.message && (
-              <span className="block text-xs text-destructive mt-1">
-                {errors.confirm_passed.message}
-              </span>
-            )}
-          </span>
-        </label>
+        {!isStory && (
+          <label className="flex items-start gap-3 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              {...register("confirm_passed")}
+              className="mt-1 w-4 h-4 rounded border-border text-accent focus:ring-accent/40"
+            />
+            <span className="text-foreground">
+              {ts.confirmPassedLabel}
+              {errors.confirm_passed?.message && (
+                <span className="block text-xs text-destructive mt-1">
+                  {errors.confirm_passed.message}
+                </span>
+              )}
+            </span>
+          </label>
+        )}
         <label className="flex items-start gap-3 text-sm cursor-pointer">
           <input
             type="checkbox"

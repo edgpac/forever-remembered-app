@@ -33,6 +33,7 @@ export type Database = {
           location: string | null
           loves: string | null
           memorial_id: string
+          memorial_mode: string
           miss_most: string | null
           named_people: string | null
           narrative_en: string | null
@@ -70,6 +71,7 @@ export type Database = {
           location?: string | null
           loves?: string | null
           memorial_id: string
+          memorial_mode?: string
           music_links?: Array<{ url: string; title?: string }> | null
           legacy_links?: Array<{ url: string; label?: string }> | null
           miss_most?: string | null
@@ -109,6 +111,7 @@ export type Database = {
           location?: string | null
           loves?: string | null
           memorial_id?: string
+          memorial_mode?: string
           miss_most?: string | null
           music_links?: Array<{ url: string; title?: string }> | null
           legacy_links?: Array<{ url: string; label?: string }> | null

@@ -5,6 +5,7 @@ import { sendMemorialEmail } from "@/lib/send-memorial-email";
 
 function buildPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
   const isPet = m.subject_type === "pet";
+  const isStory = m.memorial_mode === "story";
 
   const langInstruction =
     lang === "es"
@@ -20,31 +21,61 @@ function buildPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
   push("Full name", m.full_name as string);
   push("Nickname", m.nickname as string);
   push("Born", m.birth_date as string);
-  push("Passed", m.passing_date as string);
+  if (!isStory) push("Passed", m.passing_date as string);
 
   if (isPet) {
     push("Kind of animal", m.occupation as string);
     push("Three words that describe them", m.personality_words as string);
-    push("The energy they brought to the home", m.insider_detail as string);
-    push("What they loved most", m.loves as string);
-    push("A funny or memorable habit", m.catchphrase as string);
-    push("Their sound — how they greeted their person", m.pet_sound as string);
-    push("What they smelled like", m.smell as string);
-    push("An ordinary moment the writer was memorizing without knowing it", m.strongest_memory as string);
+    push("The energy they bring to the home", m.insider_detail as string);
+    push(isStory ? "What they love most" : "What they loved most", m.loves as string);
+    push(isStory ? "A funny or memorable habit" : "A funny or memorable habit", m.catchphrase as string);
+    push("Their sound — how they greet their person", m.pet_sound as string);
+    push(isStory ? "What they smell like" : "What they smelled like", m.smell as string);
+    push(isStory ? "An ordinary moment" : "An ordinary moment the writer was memorizing without knowing it", m.strongest_memory as string);
   } else {
     push("Hometown", m.hometown as string);
-    push("What their hands looked like", m.occupation as string);
-    push("Three words those who loved them would use", m.personality_words as string);
-    push("The energy they brought into a room", m.insider_detail as string);
+    push(isStory ? "What their hands look like" : "What their hands looked like", m.occupation as string);
+    push("Three words those who love them would use", m.personality_words as string);
+    push("The energy they bring into a room", m.insider_detail as string);
     push("A regular Tuesday at their happiest — where and what", m.loves as string);
-    push("A phrase or sound they used so often you can still hear it", m.catchphrase as string);
-    push("What they smelled like", m.smell as string);
+    push(isStory ? "A phrase or word they say so often you can still hear it" : "A phrase or sound they used so often you can still hear it", m.catchphrase as string);
+    push(isStory ? "What they smell like" : "What they smelled like", m.smell as string);
     push("The moment, smell, sound, or image that comes first when you close your eyes", m.strongest_memory as string);
   }
 
   push("Writer's relationship to them", m.creator_relationship as string);
-  push("What the writer misses most", m.miss_most as string);
-  push("What they would whisper to everyone who stops here", m.want_people_to_know as string);
+  push(isStory ? "What the writer loves most about them" : "What the writer misses most", m.miss_most as string);
+  push(isStory ? "What they'd want anyone who sees their photo to know" : "What they would whisper to everyone who stops here", m.want_people_to_know as string);
+
+  if (isStory) {
+    const petInstructions = isPet
+      ? `Write from the pet's perspective — warm, tender, with a gentle sense of humor that fits their species.
+If a sound is given, weave it into the opening or closing. If a smell is given, use it as a sensory anchor.`
+      : "";
+
+    return `You are writing a short personal narrative in the FIRST PERSON — as if the person themselves were speaking, in the PRESENT TENSE, describing who they are right now.
+
+${langInstruction}
+
+${petInstructions}
+
+This is NOT a memorial. The subject is alive. Write entirely in present tense ("I love", "my hands are", "I find myself"). Never use past tense for describing who they are.
+
+THE GOAL: When someone scans the QR code next to this person's photo, they meet the person in the image — in their own voice. It should feel like a warm, specific self-portrait: here's who I am, here's what I care about, here's what I'd want you to know.
+
+Tone: warm, intimate, a little conversational. Not a resume. Not an obituary. A brief self-portrait in words.
+
+Sensory rule: Every paragraph must contain at least one grounding sensory detail — a smell, a texture, a sound, a specific light, a physical gesture. The smell field, if provided, must appear exactly once, naturally embedded.
+
+Length: 180–260 words, in 3 short paragraphs separated by blank lines. Start with a specific physical detail or a moment — never with "Hello, my name is" or "I am a [job title]".
+
+Use any catchphrase or signature expression naturally, once. End with something quiet and true — what they'd want the reader to know.
+
+FACTS:
+${facts.join("\n")}
+
+Output ONLY the narrative paragraphs. No title, no headings, no preamble, no quotes around it.`;
+  }
 
   const petInstructions = isPet
     ? `Write from the pet's perspective — warm, tender, with a gentle sense of humor that fits their species.
