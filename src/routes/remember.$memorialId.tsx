@@ -124,11 +124,14 @@ export const Route = createFileRoute("/remember/$memorialId")({
         { name: "description", content: desc },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
+        { property: "og:site_name", content: "Forever Here · QR Headstone" },
         { property: "og:url", content: pageUrl },
         { property: "og:type", content: "profile" },
         ...(m.portrait_url ? [{ property: "og:image", content: m.portrait_url }] : []),
         ...(m.portrait_url ? [{ name: "twitter:image", content: m.portrait_url }] : []),
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
         { name: "robots", content: "index, follow" },
       ],
       scripts: [
@@ -683,7 +686,7 @@ function QRSection({
   async function handleShare() {
     const shareData = {
       title: `${display} — Forever Here`,
-      text: `A memorial page for ${display}.`,
+      text: isStory ? `Their story — ${display} · Forever Here` : `In loving memory of ${display} · Forever Here`,
       url: memorialUrl,
     };
     try {
