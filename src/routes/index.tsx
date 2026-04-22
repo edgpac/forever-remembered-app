@@ -1,8 +1,37 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { useLang } from "@/lib/language-context";
+
+function StickyCard({
+  children,
+  index,
+  isLast = false,
+}: {
+  children: React.ReactNode;
+  index: number;
+  isLast?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.93]);
+
+  return (
+    <div ref={ref} className="sticky top-0" style={{ zIndex: index + 1 }}>
+      <motion.div
+        style={isLast ? {} : { scale, transformOrigin: "top center" }}
+        className={index > 0 ? "rounded-t-[2rem] overflow-hidden shadow-[0_-8px_32px_rgba(0,0,0,0.08)]" : ""}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,12 +54,20 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       <SiteHeader />
-      <Hero />
-      <HowItWorks />
-      <Examples />
-      <Placements />
+      <StickyCard index={0}>
+        <Hero />
+      </StickyCard>
+      <StickyCard index={1}>
+        <HowItWorks />
+      </StickyCard>
+      <StickyCard index={2}>
+        <Examples />
+      </StickyCard>
+      <StickyCard index={3} isLast>
+        <Placements />
+      </StickyCard>
       <SiteFooter />
     </div>
   );
