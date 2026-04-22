@@ -304,29 +304,45 @@ function Placements() {
   const th = t.home;
   return (
     <section className="bg-card border-t border-border/40">
-      <div className="max-w-2xl mx-auto px-6 py-24 md:py-32">
-        <h2 className="font-display text-4xl md:text-5xl leading-tight text-foreground">
-          {th.photoTitle1}<br />{th.photoTitle2}
-        </h2>
-        <p className="mt-8 font-serif text-lg text-muted-foreground leading-relaxed">
-          {th.photoBody}
-        </p>
-        <ul className="mt-10 space-y-4">
-          {th.photoLines.map((line) => (
-            <li key={line} className="font-serif text-base text-foreground/70 flex items-baseline gap-3">
-              <span className="text-accent shrink-0">—</span>
-              {line}
-            </li>
-          ))}
-        </ul>
-        <div className="mt-12 flex justify-center">
-          <Link
-            to="/create"
-            className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
-          >
-            {th.ctaBtn}
-            <span aria-hidden>→</span>
-          </Link>
+      <div className="max-w-6xl mx-auto px-6 py-24 md:py-32">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+          {/* Left — collage image */}
+          <div className="order-2 lg:order-1">
+            <img
+              src="/hero-collage.jpg"
+              alt="A QR code placed on a headstone, ash vase, picture frame, memorial t-shirt, keychain, and park bench"
+              className="w-full rounded-2xl shadow-warm object-cover"
+            />
+          </div>
+
+          {/* Right — copy */}
+          <div className="order-1 lg:order-2">
+            <h2 className="font-display text-4xl md:text-5xl leading-tight text-foreground">
+              {th.photoTitle1}<br />{th.photoTitle2}
+            </h2>
+            <p className="mt-8 font-serif text-lg text-muted-foreground leading-relaxed">
+              {th.photoBody}
+            </p>
+            <ul className="mt-10 space-y-4">
+              {th.photoLines.map((line) => (
+                <li key={line} className="font-serif text-base text-foreground/70 flex items-baseline gap-3">
+                  <span className="text-accent shrink-0">—</span>
+                  {line}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-12">
+              <Link
+                to="/create"
+                className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
+              >
+                {th.ctaBtn}
+                <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
