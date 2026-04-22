@@ -1,6 +1,14 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist/client",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "qrheadstone.com" }],
+      "destination": "https://www.qrheadstone.com/:path*",
+      "permanent": true
+    }
+  ],
   "functions": {
     "api/server.ts": {
       "includeFiles": "dist/server/**",
