@@ -307,13 +307,22 @@ function Placements() {
       <div className="max-w-6xl mx-auto px-6 py-24 md:py-32">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
 
-          {/* Left — collage image */}
-          <div className="order-2 lg:order-1">
+          {/* Left — collage image + button */}
+          <div className="order-2 lg:order-1 flex flex-col">
             <img
               src="/hero-collage.jpg"
               alt="A QR code placed on a headstone, ash vase, picture frame, memorial t-shirt, keychain, and park bench"
               className="w-full rounded-2xl shadow-warm object-cover"
             />
+            <div className="mt-8">
+              <Link
+                to="/create"
+                className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
+              >
+                {th.ctaBtn}
+                <span aria-hidden>→</span>
+              </Link>
+            </div>
           </div>
 
           {/* Right — copy */}
@@ -332,15 +341,6 @@ function Placements() {
                 </li>
               ))}
             </ul>
-            <div className="mt-12">
-              <Link
-                to="/create"
-                className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-medium shadow-warm hover:opacity-90 transition"
-              >
-                {th.ctaBtn}
-                <span aria-hidden>→</span>
-              </Link>
-            </div>
           </div>
 
         </div>
