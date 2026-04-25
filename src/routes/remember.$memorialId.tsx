@@ -134,6 +134,9 @@ export const Route = createFileRoute("/remember/$memorialId")({
         { name: "twitter:description", content: desc },
         { name: "robots", content: "index, follow" },
       ],
+      links: [
+        { rel: "canonical", href: pageUrl },
+      ],
       scripts: [
         { type: "application/ld+json", children: JSON.stringify(jsonLd) },
       ],

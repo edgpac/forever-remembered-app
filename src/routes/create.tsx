@@ -24,6 +24,9 @@ export const Route = createFileRoute("/create")({
       { title: "Create a memorial — Forever Here" },
       { name: "description", content: "A short, gentle form. We'll write their story in their voice." },
     ],
+    links: [
+      { rel: "canonical", href: "https://www.qrheadstone.com/create" },
+    ],
   }),
   component: CreateMemorial,
 });

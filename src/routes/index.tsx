@@ -48,6 +48,9 @@ export const Route = createFileRoute("/")({
         content: "A short form. A QR code. Their story, in their own voice.",
       },
     ],
+    links: [
+      { rel: "canonical", href: "https://www.qrheadstone.com/" },
+    ],
   }),
   component: Landing,
 });
