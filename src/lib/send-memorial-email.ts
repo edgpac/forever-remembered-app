@@ -5,11 +5,13 @@ export async function sendMemorialEmail({
   fullName,
   memorialUrl,
   qrPngUrl,
+  mode = "memorial",
 }: {
   toEmail: string;
   fullName: string;
   memorialUrl: string;
   qrPngUrl: string | null;
+  mode?: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -18,13 +20,28 @@ export async function sendMemorialEmail({
   }
 
   const resend = new Resend(apiKey);
+  const isStory = mode === "story";
 
   const qrBlock = qrPngUrl
     ? `<div style="text-align:center;margin:32px 0;">
-        <img src="${qrPngUrl}" alt="QR code for ${fullName}'s memorial" width="200" height="200" style="border-radius:12px;" />
-        <p style="margin-top:12px;font-size:12px;color:#888;font-style:italic;">Print on sticker paper or get it engraved.</p>
+        <img src="${qrPngUrl}" alt="QR code for ${fullName}" width="200" height="200" style="border-radius:12px;" />
+        <p style="margin-top:12px;font-size:12px;color:#888;font-style:italic;">
+          ${isStory ? "Share it with them or anyone who wants to know their story." : "Print on sticker paper or get it engraved."}
+        </p>
        </div>`
     : "";
+
+  const headerSubtitle = isStory ? "Their story is ready." : "Their memorial is ready.";
+  const bodyLine1 = isStory
+    ? `The story for <strong>${fullName}</strong> has been written and is now live. Anyone with the link can read it — and the QR code takes them straight there.`
+    : `The memorial for <strong>${fullName}</strong> has been written and is now live. Their story is ready to be heard by anyone who scans the QR code.`;
+  const bodyLine2 = isStory
+    ? `You can visit the page, share the link, or print the QR code below to place it on a frame, shelf, or anywhere their story should live.`
+    : `You can visit the memorial, share the link, or print the QR code below to place it anywhere they are remembered.`;
+  const ctaLabel = isStory ? "View their story →" : "View memorial →";
+  const subject = isStory
+    ? `${fullName}'s story is ready — Forever Here`
+    : `${fullName}'s memorial is ready — Forever Here`;
 
   const html = `
 <!DOCTYPE html>
@@ -40,7 +57,7 @@ export async function sendMemorialEmail({
           <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
             <p style="margin:0;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#c9a96e;">Forever Here</p>
             <h1 style="margin:8px 0 0;font-size:24px;color:#f9f6f0;font-weight:400;">${fullName}</h1>
-            <p style="margin:8px 0 0;font-size:12px;color:rgba(249,246,240,0.5);font-style:italic;">Their memorial is ready.</p>
+            <p style="margin:8px 0 0;font-size:12px;color:rgba(249,246,240,0.5);font-style:italic;">${headerSubtitle}</p>
           </td>
         </tr>
 
@@ -48,14 +65,14 @@ export async function sendMemorialEmail({
         <tr>
           <td style="padding:40px 40px 16px;">
             <p style="margin:0 0 16px;font-size:16px;line-height:1.7;color:#3a3a3a;">
-              The memorial for <strong>${fullName}</strong> has been written and is now live. Their story is ready to be heard by anyone who scans the QR code.
+              ${bodyLine1}
             </p>
             <p style="margin:0 0 24px;font-size:16px;line-height:1.7;color:#3a3a3a;">
-              You can visit the memorial, share the link, or print the QR code below to place it anywhere they are remembered.
+              ${bodyLine2}
             </p>
             <div style="text-align:center;margin:24px 0;">
               <a href="${memorialUrl}" style="display:inline-block;background:#1a1a2e;color:#f9f6f0;text-decoration:none;padding:14px 32px;border-radius:100px;font-size:14px;font-family:sans-serif;letter-spacing:0.05em;">
-                View memorial →
+                ${ctaLabel}
               </a>
             </div>
           </td>
@@ -72,7 +89,7 @@ export async function sendMemorialEmail({
         <tr>
           <td style="padding:16px 40px 40px;">
             <p style="margin:0;font-size:13px;color:#888;line-height:1.6;border-top:1px solid #e8e2d9;padding-top:24px;">
-              <strong style="color:#555;">The story not quite right?</strong> Visit the memorial page and click <em>"Edit story"</em> — enter this email address to make changes anytime.
+              <strong style="color:#555;">The story not quite right?</strong> Visit the page and click <em>"Edit story"</em> — enter this email address to make changes anytime.
             </p>
           </td>
         </tr>
@@ -95,7 +112,7 @@ export async function sendMemorialEmail({
   await resend.emails.send({
     from: "Forever Here <memories@qrheadstone.com>",
     to: toEmail,
-    subject: `${fullName}'s memorial is ready — Forever Here`,
+    subject,
     html,
   });
 }

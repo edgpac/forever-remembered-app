@@ -234,6 +234,7 @@ export async function runMemorialPipeline(memorialId: string, siteOrigin?: strin
       fullName: memorial.full_name,
       memorialUrl,
       qrPngUrl: qrPngUrl ?? null,
+      mode: memorial.memorial_mode ?? "memorial",
     });
   } catch (e) {
     console.error("Email send failed (non-fatal)", e);
