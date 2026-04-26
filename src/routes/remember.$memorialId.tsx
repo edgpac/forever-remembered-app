@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabase } from "@/integrations/supabase/client";
 import { formatYears } from "@/lib/memorial";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -65,6 +66,26 @@ const updateNarrative = createServerFn({ method: "POST" })
       .eq("memorial_id", data.memorialId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+const addAlbumPhotos = createServerFn({ method: "POST" })
+  .inputValidator((d: { memorialId: string; email: string; urls: string[] }) => d)
+  .handler(async ({ data }) => {
+    const { data: m, error: fetchErr } = await supabaseAdmin
+      .from("memorials")
+      .select("creator_email, gallery_urls")
+      .eq("memorial_id", data.memorialId)
+      .maybeSingle();
+    if (fetchErr || !m) throw new Error("Memorial not found");
+    if (m.creator_email.toLowerCase() !== data.email.trim().toLowerCase()) throw new Error("EMAIL_MISMATCH");
+    const existing = (m.gallery_urls as string[] | null) ?? [];
+    const updated = [...existing, ...data.urls];
+    const { error } = await supabaseAdmin
+      .from("memorials")
+      .update({ gallery_urls: updated })
+      .eq("memorial_id", data.memorialId);
+    if (error) throw new Error(error.message);
+    return { ok: true, urls: updated };
   });
 
 const addNote = createServerFn({ method: "POST" })
@@ -292,6 +313,8 @@ function MemorialPage() {
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://www.qrheadstone.com";
   const memorialUrl = `${origin}/remember/${m.memorial_id}`;
+  const isAlbum = m.memorial_mode === "album";
+  const [galleryUrls, setGalleryUrls] = useState<string[]>((m.gallery_urls as string[] | null) ?? []);
 
   useEffect(() => {
     if (!generating) return;
@@ -336,10 +359,15 @@ function MemorialPage() {
           )}
         </section>
 
-        {/* Gallery */}
-        {m.gallery_urls && m.gallery_urls.length > 0 && (
+        {/* Gallery + album upload */}
+        {isAlbum && (
+          <FadeUp className="max-w-3xl mx-auto px-6 pb-8">
+            <AlbumPhotoUpload memorialId={m.memorial_id} onUploaded={setGalleryUrls} />
+          </FadeUp>
+        )}
+        {galleryUrls.length > 0 && (
           <FadeUp className="max-w-3xl mx-auto px-6 pb-16">
-            <GallerySection urls={m.gallery_urls as string[]} name={m.full_name} />
+            <GallerySection urls={galleryUrls} name={m.full_name} />
           </FadeUp>
         )}
 
@@ -392,6 +420,112 @@ function MemorialPage() {
       </article>
 
       <SiteFooter />
+    </div>
+  );
+}
+
+// ─── Album Photo Upload ───────────────────────────────────────────────────────
+
+function AlbumPhotoUpload({
+  memorialId,
+  onUploaded,
+}: {
+  memorialId: string;
+  onUploaded: (urls: string[]) => void;
+}) {
+  const { t } = useLang();
+  const tm = t.memorial;
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFiles(files: FileList) {
+    if (!files.length || !email.trim()) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) continue;
+        if (file.size > 10 * 1024 * 1024) continue;
+        const path = `album-photos/${memorialId}/${crypto.randomUUID()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("portraits")
+          .upload(path, file, { contentType: file.type, cacheControl: "3600", upsert: false });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("portraits").getPublicUrl(path);
+        uploaded.push(data.publicUrl);
+      }
+      if (!uploaded.length) throw new Error("No valid photos selected");
+      const result = await addAlbumPhotos({ data: { memorialId, email, urls: uploaded } });
+      onUploaded(result.urls);
+      setDone(true);
+      setOpen(false);
+      setTimeout(() => setDone(false), 3000);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setError(msg === "EMAIL_MISMATCH" ? tm.addPhotosError : msg || tm.addPhotosError);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2 text-sm text-foreground hover:border-accent/60 hover:bg-accent/5 transition"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          {tm.addPhotosBtn}
+        </button>
+        {done && <span className="text-xs text-accent">{tm.addPhotosDone}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+      <p className="text-xs text-muted-foreground">{tm.addPhotosEmailPrompt}</p>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+      />
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        className="hidden"
+        onChange={(e) => { if (e.target.files) handleFiles(e.target.files); }}
+      />
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => email.trim() && inputRef.current?.click()}
+          disabled={uploading || !email.trim()}
+          className="rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
+        >
+          {uploading ? tm.addPhotosUploading : tm.addPhotosSelect}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setOpen(false); setError(null); }}
+          className="text-sm text-muted-foreground hover:text-foreground transition"
+        >
+          {tm.addPhotosCancel}
+        </button>
+      </div>
+      <p className="text-[11px] text-muted-foreground">{tm.addPhotosHint}</p>
     </div>
   );
 }
