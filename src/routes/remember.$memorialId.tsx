@@ -1160,7 +1160,7 @@ function QRSection({
   years,
   memorialUrl,
 }: {
-  m: { qr_png_url: string | null; memorial_id: string; full_name: string; memorial_mode: string | null };
+  m: { qr_png_url: string | null; memorial_id: string; full_name: string; memorial_mode: string | null; birth_date: string | null };
   display: string;
   years: string;
   memorialUrl: string;
@@ -1195,7 +1195,11 @@ function QRSection({
   }
 
   function handlePrint() {
-    const yearsHtml = years ? `<p class="years">${years}</p>` : "";
+    const printEyebrow = isAlbum ? tm.printAlbumEyebrow : isStory ? tm.printStoryEyebrow : tm.printEyebrow;
+    const printSubline = isAlbum
+      ? (m.birth_date ? new Date(m.birth_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "")
+      : years;
+    const yearsHtml = printSubline ? `<p class="years">${printSubline}</p>` : "";
     const qrHtml = m.qr_png_url ? `<img class="qr" src="${m.qr_png_url}" alt="QR Code" />` : "";
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -1265,7 +1269,7 @@ function QRSection({
   </style>
 </head>
 <body>
-  <p class="eyebrow">${tm.printEyebrow}</p>
+  <p class="eyebrow">${printEyebrow}</p>
   <h1>${display}</h1>
   ${yearsHtml}
   <div class="divider"></div>
