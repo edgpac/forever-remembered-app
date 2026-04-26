@@ -3,7 +3,49 @@ import QRCode from "qrcode";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendMemorialEmail } from "@/lib/send-memorial-email";
 
+function buildAlbumPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
+  const langInstruction =
+    lang === "es"
+      ? "Write the entire narrative in natural, warm Spanish. Use Latin American idioms when natural."
+      : "Write the entire narrative in natural, warm English.";
+
+  const facts: string[] = [];
+  const push = (label: string, val?: string | null) => {
+    if (val && String(val).trim()) facts.push(`- ${label}: ${String(val).trim()}`);
+  };
+
+  push("Album title", m.full_name as string);
+  push("Subtitle", m.nickname as string);
+  push("Occasion", m.occupation as string);
+  push("Event date", m.birth_date as string);
+  push("The mood and feeling of the day", m.insider_detail as string);
+  push("Key moments and highlights", m.loves as string);
+  push("The story behind it", m.strongest_memory as string);
+  push("Message to viewers", m.want_people_to_know as string);
+  push("Created by", m.creator_relationship as string);
+  push("What the creator wants people to feel", m.miss_most as string);
+
+  return `You are writing the opening narrative for a PHOTO ALBUM — a short, warm, present-tense welcome that invites anyone who scans the QR code into this celebration.
+
+${langInstruction}
+
+THE GOAL: When someone scans the QR code at the event or sees it later on a photo, frame, or card, they feel instantly welcomed into this moment. Write as if speaking to someone walking through the door — pulling them into the atmosphere, the people, the feeling of the day.
+
+Tone: warm, celebratory, specific. Not a press release. Not generic ("it was a beautiful day"). Something the people in the photo would read and say "yes — exactly that."
+
+If a message to viewers is provided, weave it in naturally at the end — as a quiet welcome, not a declaration.
+
+Length: 150–200 words, in 2–3 short paragraphs. Start with a specific sensory detail or a key moment — never with "Welcome to" or "Today we celebrate".
+
+FACTS:
+${facts.join("\n")}
+
+Output ONLY the narrative paragraphs. No title, no headings, no preamble, no quotes around it.`;
+}
+
 function buildPrompt(m: Record<string, unknown>, lang: "en" | "es"): string {
+  if (m.memorial_mode === "album") return buildAlbumPrompt(m, lang);
+
   const isPet = m.subject_type === "pet";
   const isStory = m.memorial_mode === "story";
 

@@ -95,14 +95,19 @@ export const Route = createFileRoute("/remember/$memorialId")({
     if (!m) return {};
     const display = m.nickname ? `${m.full_name} "${m.nickname}"` : m.full_name;
     const isStory = (m.memorial_mode ?? "memorial") === "story";
-    const fallback = isStory
-      ? `Their story — ${display} · Forever Here`
-      : `In loving memory of ${display} · Forever Here`;
+    const isAlbum = m.memorial_mode === "album";
+    const fallback = isAlbum
+      ? `${display} · Forever Here`
+      : isStory
+        ? `Their story — ${display} · Forever Here`
+        : `In loving memory of ${display} · Forever Here`;
     const narrative = (m.narrative_en || m.narrative_es || "").trim();
     const desc = narrative ? narrative.slice(0, 150) + (narrative.length > 150 ? "…" : "") : fallback;
-    const title = isStory
-      ? `Their story — ${display} · Forever Here`
-      : `In loving memory of ${display} · Forever Here`;
+    const title = isAlbum
+      ? `${display} · Forever Here`
+      : isStory
+        ? `Their story — ${display} · Forever Here`
+        : `In loving memory of ${display} · Forever Here`;
     const pageUrl = `https://www.qrheadstone.com/remember/${m.memorial_id}`;
 
     const jsonLd = {
@@ -221,6 +226,9 @@ function HeroSection({
   const tm = t.memorial;
   const isPet = m.subject_type === "pet";
   const isStory = (m.memorial_mode ?? "memorial") === "story";
+  const isAlbum = m.memorial_mode === "album";
+  const eyebrow = isAlbum ? tm.photoAlbum : isStory ? tm.storyEyebrow : isPet ? tm.foreverInHearts : tm.inLovingMemory;
+  const creatorLabel = isAlbum ? tm.albumCreatedBy : tm.lovedBy;
 
   return (
     <div className="memorial-hero">
@@ -248,11 +256,11 @@ function HeroSection({
       {/* Name & dates — bottom-right editorial block */}
       <div className="memorial-hero-text">
         <p className="text-[11px] tracking-[0.35em] uppercase text-white/60 mb-2">
-          {isStory ? tm.storyEyebrow : isPet ? tm.foreverInHearts : tm.inLovingMemory}
+          {eyebrow}
         </p>
         <h1 className="font-display text-white leading-tight" style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)" }}>
           {display}
-          {isPet && <span className="ml-3 text-[0.7em]">🐾</span>}
+          {isPet && !isAlbum && <span className="ml-3 text-[0.7em]">🐾</span>}
         </h1>
         {years && (
           <p className="mt-2 font-serif italic text-white/60" style={{ fontSize: "clamp(0.95rem, 2vw, 1.2rem)" }}>
@@ -261,7 +269,7 @@ function HeroSection({
         )}
         {m.creator_relationship && (
           <p className="mt-3 text-[11px] tracking-[0.2em] uppercase text-white/40">
-            {tm.lovedBy} {m.creator_relationship}
+            {creatorLabel} {m.creator_relationship}
           </p>
         )}
       </div>

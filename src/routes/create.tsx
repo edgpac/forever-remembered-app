@@ -171,9 +171,12 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
   const v = form.watch();
   const isPet = v.subject_type === "pet";
   const isStory = mode === "story";
-  const eyebrow = isStory
-    ? (isPet ? tp.eyebrowPetStory : tp.eyebrowStory)
-    : (isPet ? tp.eyebrowPetMemorial : tp.eyebrowMemorial);
+  const isAlbum = mode === "album";
+  const eyebrow = isAlbum
+    ? tp.eyebrowAlbum
+    : isStory
+      ? (isPet ? tp.eyebrowPetStory : tp.eyebrowStory)
+      : (isPet ? tp.eyebrowPetMemorial : tp.eyebrowMemorial);
   const display = v.full_name
     ? v.nickname
       ? `${v.full_name} "${v.nickname}"`
@@ -255,7 +258,7 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
             )}
             {!display && !personalityChips.length && (
               <p className="text-[11px] text-muted-foreground text-center py-2 font-serif italic">
-                {isStory ? tp.placeholderStory : tp.placeholderMemorial}
+                {isAlbum ? tp.placeholderAlbum : isStory ? tp.placeholderStory : tp.placeholderMemorial}
               </p>
             )}
           </div>
@@ -263,7 +266,7 @@ function LivePreview({ form, mode }: { form: UseFormReturn<MemorialFormData>; mo
           {/* Story placeholder */}
           <div className="px-6 pb-6 border-t border-border pt-4">
             <div className="text-[9px] tracking-widest uppercase text-muted-foreground mb-2">
-              {isStory ? tp.sectionStory : tp.sectionMemorial}
+              {isAlbum ? tp.sectionAlbum : isStory ? tp.sectionStory : tp.sectionMemorial}
             </div>
             <div className="space-y-1.5">
               {[100, 85, 92, 70].map((w, i) => (
@@ -292,6 +295,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: MemorialMode) => void }) 
   const modes: { key: MemorialMode; label: string; sub: string }[] = [
     { key: "memorial", label: ts.memorialLabel, sub: ts.memorialSub },
     { key: "story", label: ts.storyLabel, sub: ts.storySub },
+    { key: "album", label: ts.albumLabel, sub: ts.albumSub },
   ];
   return (
     <div className="min-h-screen flex flex-col bg-candlelight">
@@ -301,7 +305,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: MemorialMode) => void }) 
           <div className="text-xs tracking-[0.3em] uppercase text-accent mb-3">{ts.eyebrow}</div>
           <h1 className="font-display text-4xl md:text-5xl leading-tight">{ts.title}</h1>
         </div>
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-3 gap-4">
           {modes.map(({ key, label, sub }) => (
             <button
               key={key}
@@ -536,7 +540,7 @@ const inputCls =
   "w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition";
 const textareaCls = inputCls + " min-h-[120px] resize-y font-serif leading-relaxed";
 
-type MemorialMode = "memorial" | "story";
+type MemorialMode = "memorial" | "story" | "album";
 type FormProp = { form: UseFormReturn<MemorialFormData>; mode: MemorialMode };
 
 // ─── Step 1: Who ──────────────────────────────────────────────────────────────
@@ -545,8 +549,53 @@ function Step1({ form, mode }: FormProp) {
   const { register, watch, setValue, formState: { errors } } = form;
   const { t } = useLang();
   const ts = t.create.step1;
+  const ta = t.create.step1Album;
+  const tc = t.create;
   const subject = watch("subject_type");
   const portrait = watch("portrait_url");
+  const isAlbum = mode === "album";
+
+  if (isAlbum) {
+    return (
+      <div className="space-y-7">
+        <StepHeader eyebrow={ta.eyebrow} title={ta.title} sub={ta.sub} />
+
+        <PortraitUpload value={portrait} onChange={(url) => setValue("portrait_url", url)} />
+
+        <Field label={ta.titleLabel} error={errors.full_name?.message}>
+          <input
+            type="text"
+            {...register("full_name")}
+            className={inputCls}
+            placeholder={ta.titlePlaceholder}
+          />
+        </Field>
+
+        <Field label={ta.subtitleLabel}>
+          <input
+            type="text"
+            {...register("nickname")}
+            className={inputCls}
+            placeholder={ta.subtitlePlaceholder}
+          />
+        </Field>
+
+        <Field label={ta.occasionLabel}>
+          <MultiChoice
+            options={ta.occasionOptions}
+            value={watch("occupation") ?? ""}
+            onChange={(v) => setValue("occupation", v)}
+            placeholder={ta.occasionPlaceholder}
+            otherLabel={tc.otherOption}
+          />
+        </Field>
+
+        <Field label={ta.eventDateLabel} error={errors.birth_date?.message}>
+          <input type="date" {...register("birth_date")} className={inputCls} />
+        </Field>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-7">
@@ -1043,7 +1092,91 @@ function PetStep2({ form, mode: _mode }: FormProp) {
   );
 }
 
+function AlbumStep2({ form }: { form: UseFormReturn<MemorialFormData> }) {
+  const { register, watch, setValue, control, formState: { errors } } = form;
+  const { t } = useLang();
+  const ta = t.create.step2Album;
+  const tc = t.create;
+  const { fields, append, remove } = useFieldArray({ control, name: "music_links" });
+  const { fields: legacyFields, append: legacyAppend, remove: legacyRemove } = useFieldArray({ control, name: "legacy_links" });
+
+  return (
+    <div className="space-y-8">
+      <StepHeader eyebrow={ta.eyebrow} title={ta.title} sub={ta.sub} />
+
+      <Field label={ta.vibeLabel}>
+        <MultiChoice
+          options={ta.vibeOptions}
+          value={watch("aura") ?? ""}
+          onChange={(v) => setValue("aura", v)}
+          placeholder={ta.vibePlaceholder}
+          otherLabel={tc.otherOption}
+        />
+      </Field>
+
+      <Field label={ta.highlightsLabel} error={errors.loves?.message}>
+        <textarea {...register("loves")} className={textareaCls} placeholder={ta.highlightsPlaceholder} />
+      </Field>
+
+      <Field label={ta.storyLabel} hint={ta.storyHint} error={errors.strongest_memory?.message}>
+        <textarea {...register("strongest_memory")} className={textareaCls} placeholder={ta.storyPlaceholder} />
+      </Field>
+
+      <Field label={ta.messageLabel} error={errors.want_people_to_know?.message}>
+        <textarea {...register("want_people_to_know")} className={textareaCls} placeholder={ta.messagePlaceholder} />
+      </Field>
+
+      {/* Soundtrack */}
+      <div>
+        <div className="text-sm font-medium text-foreground mb-0.5">{ta.musicTitle}</div>
+        <div className="text-xs text-muted-foreground mb-3">{ta.musicHint}</div>
+        <div className="space-y-3">
+          {fields.map((field, i) => {
+            const url = form.watch(`music_links.${i}.url`) ?? "";
+            let platform = "Link";
+            try {
+              const { hostname } = new URL(url);
+              if (hostname.includes("youtube") || hostname.includes("youtu.be")) platform = "YouTube";
+              else if (hostname.includes("spotify")) platform = "Spotify";
+              else if (hostname.includes("apple")) platform = "Apple Music";
+              else if (hostname.includes("soundcloud")) platform = "SoundCloud";
+            } catch {}
+            return (
+              <div key={field.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs tracking-widest uppercase text-accent">{url ? platform : `Song ${i + 1}`}</span>
+                  <button type="button" onClick={() => remove(i)} className="text-xs text-muted-foreground hover:text-destructive transition">{ta.musicRemove}</button>
+                </div>
+                <input type="url" {...register(`music_links.${i}.url`)} className={inputCls} placeholder={ta.musicUrlPlaceholder} />
+                {errors.music_links?.[i]?.url && <span className="block text-xs text-destructive">{errors.music_links[i]?.url?.message}</span>}
+                <input type="text" {...register(`music_links.${i}.title`)} className={inputCls} placeholder={ta.musicTitlePlaceholder} />
+              </div>
+            );
+          })}
+        </div>
+        {fields.length < 5 && (
+          <button type="button" onClick={() => append({ url: "", title: "" })}
+            className="mt-3 w-full rounded-xl border-2 border-dashed border-border hover:border-accent/50 py-3 text-sm text-muted-foreground hover:text-foreground transition">
+            {ta.musicAdd}
+          </button>
+        )}
+      </div>
+
+      <LegacyLinksField
+        fields={legacyFields} append={legacyAppend} remove={legacyRemove}
+        register={register} errors={errors} watch={watch} setValue={setValue}
+        title={ta.linksTitle} hint={ta.linksHint}
+        labelOptions={ta.linksLabelOptions}
+        addLabel={ta.linksAdd} removeLabel={ta.linksRemove}
+        urlPlaceholder={ta.linksUrlPlaceholder} labelPlaceholder={ta.linksLabelPlaceholder}
+        otherLabel={tc.otherOption}
+      />
+    </div>
+  );
+}
+
 function Step2({ form, mode }: FormProp) {
+  if (mode === "album") return <AlbumStep2 form={form} />;
   const subject = form.watch("subject_type");
   return subject === "pet" ? <PetStep2 form={form} mode={mode} /> : <PersonStep2 form={form} mode={mode} />;
 }
@@ -1058,37 +1191,62 @@ function Step3({ form, mode }: FormProp) {
   const language = watch("language");
   const isPet = watch("subject_type") === "pet";
   const isStory = mode === "story";
+  const isAlbum = mode === "album";
 
   useEffect(() => {
-    if (isStory) setValue("confirm_passed", true as unknown as true);
-  }, [isStory, setValue]);
+    if (isStory || isAlbum) setValue("confirm_passed", true as unknown as true);
+  }, [isStory, isAlbum, setValue]);
+
+  const ta3 = t.create.step3Album;
 
   return (
     <div className="space-y-8">
-      <StepHeader eyebrow={ts.eyebrow} title={ts.title} sub={ts.sub} />
+      <StepHeader
+        eyebrow={isAlbum ? ta3.eyebrow : ts.eyebrow}
+        title={isAlbum ? ta3.title : ts.title}
+        sub={isAlbum ? ta3.sub : ts.sub}
+      />
 
-      <Field label={ts.relationshipLabel}>
-        <MultiChoice
-          options={isPet ? ts.relationshipPetOptions : ts.relationshipOptions}
-          value={watch("creator_relationship") ?? ""}
-          onChange={(v) => setValue("creator_relationship", v)}
-          placeholder={isPet ? ts.relationshipPetPlaceholder : ts.relationshipPlaceholder}
-          otherLabel={tc.otherOption}
-        />
-      </Field>
-
-      <Field
-        label={isPet
-          ? (isStory ? ts.missPetLabelStory : ts.missPetLabel)
-          : (isStory ? ts.missLabelStory : ts.missLabel)}
-        error={errors.miss_most?.message}
-      >
-        <textarea
-          {...register("miss_most")}
-          className={textareaCls}
-          placeholder={isPet ? ts.missPetPlaceholder : ts.missPlaceholder}
-        />
-      </Field>
+      {isAlbum ? (
+        <>
+          <Field label={ta3.whoLabel}>
+            <MultiChoice
+              options={ta3.whoOptions}
+              value={watch("creator_relationship") ?? ""}
+              onChange={(v) => setValue("creator_relationship", v)}
+              placeholder={ta3.whoPlaceholder}
+              otherLabel={tc.otherOption}
+            />
+          </Field>
+          <Field label={ta3.feelLabel} error={errors.miss_most?.message}>
+            <textarea {...register("miss_most")} className={textareaCls} placeholder={ta3.feelPlaceholder} />
+          </Field>
+        </>
+      ) : (
+        <>
+          <Field label={ts.relationshipLabel}>
+            <MultiChoice
+              options={isPet ? ts.relationshipPetOptions : ts.relationshipOptions}
+              value={watch("creator_relationship") ?? ""}
+              onChange={(v) => setValue("creator_relationship", v)}
+              placeholder={isPet ? ts.relationshipPetPlaceholder : ts.relationshipPlaceholder}
+              otherLabel={tc.otherOption}
+            />
+          </Field>
+          <Field
+            label={isPet
+              ? (isStory ? ts.missPetLabelStory : ts.missPetLabel)
+              : (isStory ? ts.missLabelStory : ts.missLabel)}
+            error={errors.miss_most?.message}
+          >
+            <textarea
+              {...register("miss_most")}
+              className={textareaCls}
+              placeholder={isPet ? ts.missPetPlaceholder : ts.missPlaceholder}
+            />
+          </Field>
+        </>
+      )}
 
       <Field label={ts.languageLabel}>
         <div className="mt-2 grid grid-cols-3 gap-2">
@@ -1121,7 +1279,7 @@ function Step3({ form, mode }: FormProp) {
       </Field>
 
       <div className="space-y-3 pt-2">
-        {!isStory && (
+        {!isStory && !isAlbum && (
           <label className="flex items-start gap-3 text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -1145,7 +1303,7 @@ function Step3({ form, mode }: FormProp) {
             className="mt-1 w-4 h-4 rounded border-border text-accent focus:ring-accent/40"
           />
           <span className="text-foreground">
-            {ts.confirmPublicLabel}
+            {isAlbum ? ta3.confirmPublicLabel : isStory ? ts.confirmPublicLabelStory : ts.confirmPublicLabel}
             {errors.confirm_public?.message && (
               <span className="block text-xs text-destructive mt-1">
                 {errors.confirm_public.message}

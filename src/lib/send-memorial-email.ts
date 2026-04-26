@@ -21,27 +21,38 @@ export async function sendMemorialEmail({
 
   const resend = new Resend(apiKey);
   const isStory = mode === "story";
+  const isAlbum = mode === "album";
+
+  const qrCaption = isAlbum
+    ? "Print it, stick it on the invitation, the frame, or anywhere the moment lives."
+    : isStory
+      ? "Share it with them or anyone who wants to know their story."
+      : "Print on sticker paper or get it engraved.";
 
   const qrBlock = qrPngUrl
     ? `<div style="text-align:center;margin:32px 0;">
         <img src="${qrPngUrl}" alt="QR code for ${fullName}" width="200" height="200" style="border-radius:12px;" />
-        <p style="margin-top:12px;font-size:12px;color:#888;font-style:italic;">
-          ${isStory ? "Share it with them or anyone who wants to know their story." : "Print on sticker paper or get it engraved."}
-        </p>
+        <p style="margin-top:12px;font-size:12px;color:#888;font-style:italic;">${qrCaption}</p>
        </div>`
     : "";
 
-  const headerSubtitle = isStory ? "Their story is ready." : "Their memorial is ready.";
-  const bodyLine1 = isStory
-    ? `The story for <strong>${fullName}</strong> has been written and is now live. Anyone with the link can read it — and the QR code takes them straight there.`
-    : `The memorial for <strong>${fullName}</strong> has been written and is now live. Their story is ready to be heard by anyone who scans the QR code.`;
-  const bodyLine2 = isStory
-    ? `You can visit the page, share the link, or print the QR code below to place it on a frame, shelf, or anywhere their story should live.`
-    : `You can visit the memorial, share the link, or print the QR code below to place it anywhere they are remembered.`;
-  const ctaLabel = isStory ? "View their story →" : "View memorial →";
-  const subject = isStory
-    ? `${fullName}'s story is ready — Forever Here`
-    : `${fullName}'s memorial is ready — Forever Here`;
+  const headerSubtitle = isAlbum ? "Your album is ready." : isStory ? "Their story is ready." : "Their memorial is ready.";
+  const bodyLine1 = isAlbum
+    ? `The album for <strong>${fullName}</strong> has been written and is now live. Anyone with the link — or the QR code — can open it instantly.`
+    : isStory
+      ? `The story for <strong>${fullName}</strong> has been written and is now live. Anyone with the link can read it — and the QR code takes them straight there.`
+      : `The memorial for <strong>${fullName}</strong> has been written and is now live. Their story is ready to be heard by anyone who scans the QR code.`;
+  const bodyLine2 = isAlbum
+    ? `Print the QR code and stick it on the invitation, the photo, the frame — anywhere the moment deserves to live a little longer.`
+    : isStory
+      ? `You can visit the page, share the link, or print the QR code below to place it on a frame, shelf, or anywhere their story should live.`
+      : `You can visit the memorial, share the link, or print the QR code below to place it anywhere they are remembered.`;
+  const ctaLabel = isAlbum ? "Open the album →" : isStory ? "View their story →" : "View memorial →";
+  const subject = isAlbum
+    ? `${fullName} — your album is ready · Forever Here`
+    : isStory
+      ? `${fullName}'s story is ready — Forever Here`
+      : `${fullName}'s memorial is ready — Forever Here`;
 
   const html = `
 <!DOCTYPE html>
