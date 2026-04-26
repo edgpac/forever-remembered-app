@@ -18,10 +18,10 @@ type MemorialNote = {
 const getMemorial = createServerFn({ method: "GET" })
   .inputValidator((data: { memorialId: string }) => data)
   .handler(async ({ data }) => {
-    const { data: memorial, error } = await supabaseAdmin
+    const { data: memorial, error } = await (supabaseAdmin as any)
       .from("memorials")
       .select(
-        "memorial_id, status, subject_type, memorial_mode, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, insider_detail, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, qr_png_url, creator_relationship, music_links, legacy_links, want_people_to_know"
+        "memorial_id, status, subject_type, memorial_mode, full_name, nickname, birth_date, passing_date, hometown, occupation, loves, insider_detail, catchphrase, narrative_en, narrative_es, language, portrait_url, gallery_urls, guest_photo_mode, pending_photo_urls, qr_png_url, creator_relationship, music_links, legacy_links, want_people_to_know"
       )
       .eq("memorial_id", data.memorialId)
       .maybeSingle();
@@ -86,6 +86,61 @@ const addAlbumPhotos = createServerFn({ method: "POST" })
       .eq("memorial_id", data.memorialId);
     if (error) throw new Error(error.message);
     return { ok: true, urls: updated };
+  });
+
+const addGuestPhoto = createServerFn({ method: "POST" })
+  .inputValidator((d: { memorialId: string; url: string }) => d)
+  .handler(async ({ data }) => {
+    const { data: m, error: fetchErr } = await (supabaseAdmin as any)
+      .from("memorials")
+      .select("guest_photo_mode, gallery_urls, pending_photo_urls")
+      .eq("memorial_id", data.memorialId)
+      .maybeSingle();
+    if (fetchErr || !m) throw new Error("Memorial not found");
+    const mode = (m.guest_photo_mode as string) ?? "immediate";
+    if (mode === "immediate") {
+      const existing = (m.gallery_urls as string[] | null) ?? [];
+      const updated = [...existing, data.url];
+      const { error } = await supabaseAdmin
+        .from("memorials")
+        .update({ gallery_urls: updated } as any)
+        .eq("memorial_id", data.memorialId);
+      if (error) throw new Error(error.message);
+      return { mode: "immediate", galleryUrls: updated };
+    } else {
+      const existing = (m.pending_photo_urls as string[] | null) ?? [];
+      const updated = [...existing, data.url];
+      const { error } = await supabaseAdmin
+        .from("memorials")
+        .update({ pending_photo_urls: updated } as any)
+        .eq("memorial_id", data.memorialId);
+      if (error) throw new Error(error.message);
+      return { mode: "approval", pendingUrls: updated };
+    }
+  });
+
+const moderatePendingPhotos = createServerFn({ method: "POST" })
+  .inputValidator((d: { memorialId: string; email: string; approve: string[]; remove: string[] }) => d)
+  .handler(async ({ data }) => {
+    const { data: m, error: fetchErr } = await (supabaseAdmin as any)
+      .from("memorials")
+      .select("creator_email, gallery_urls, pending_photo_urls")
+      .eq("memorial_id", data.memorialId)
+      .maybeSingle();
+    if (fetchErr || !m) throw new Error("Memorial not found");
+    if ((m.creator_email as string).toLowerCase() !== data.email.trim().toLowerCase()) {
+      throw new Error("EMAIL_MISMATCH");
+    }
+    const pending = (m.pending_photo_urls as string[] | null) ?? [];
+    const gallery = (m.gallery_urls as string[] | null) ?? [];
+    const newGallery = [...gallery, ...data.approve];
+    const newPending = pending.filter((u) => !data.approve.includes(u) && !data.remove.includes(u));
+    const { error } = await supabaseAdmin
+      .from("memorials")
+      .update({ gallery_urls: newGallery, pending_photo_urls: newPending } as any)
+      .eq("memorial_id", data.memorialId);
+    if (error) throw new Error(error.message);
+    return { galleryUrls: newGallery, pendingUrls: newPending };
   });
 
 const addNote = createServerFn({ method: "POST" })
@@ -315,6 +370,8 @@ function MemorialPage() {
   const memorialUrl = `${origin}/remember/${m.memorial_id}`;
   const isAlbum = m.memorial_mode === "album";
   const [galleryUrls, setGalleryUrls] = useState<string[]>((m.gallery_urls as string[] | null) ?? []);
+  const guestPhotoMode = ((m as any).guest_photo_mode as string) ?? "immediate";
+  const [pendingUrls, setPendingUrls] = useState<string[]>(((m as any).pending_photo_urls as string[] | null) ?? []);
 
   useEffect(() => {
     if (!generating) return;
@@ -361,8 +418,26 @@ function MemorialPage() {
 
         {/* Gallery + album upload */}
         {isAlbum && (
-          <FadeUp className="max-w-3xl mx-auto px-6 pb-8">
+          <FadeUp className="max-w-3xl mx-auto px-6 pb-8 space-y-4">
             <AlbumPhotoUpload memorialId={m.memorial_id} onUploaded={setGalleryUrls} />
+            <GuestPhotoUpload
+              memorialId={m.memorial_id}
+              guestPhotoMode={guestPhotoMode}
+              onAdded={(url: string, mode: string) => {
+                if (mode === "immediate") setGalleryUrls((prev) => [...prev, url]);
+                else setPendingUrls((prev) => [...prev, url]);
+              }}
+            />
+            {pendingUrls.length > 0 && (
+              <PendingPhotosPanel
+                memorialId={m.memorial_id}
+                pendingUrls={pendingUrls}
+                onModerated={(gallery: string[], pending: string[]) => {
+                  setGalleryUrls(gallery);
+                  setPendingUrls(pending);
+                }}
+              />
+            )}
           </FadeUp>
         )}
         {galleryUrls.length > 0 && (
@@ -424,6 +499,71 @@ function MemorialPage() {
   );
 }
 
+// ─── Shared drop zone ────────────────────────────────────────────────────────
+
+function DropZone({
+  id,
+  uploading,
+  disabled,
+  onFiles,
+  hint,
+}: {
+  id: string;
+  uploading: boolean;
+  disabled?: boolean;
+  onFiles: (files: FileList) => void;
+  hint: string;
+}) {
+  const [dragging, setDragging] = useState(false);
+
+  function onDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    if (!disabled) setDragging(true);
+  }
+  function onDragLeave() { setDragging(false); }
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    if (disabled || !e.dataTransfer.files.length) return;
+    onFiles(e.dataTransfer.files);
+  }
+
+  return (
+    <label
+      htmlFor={id}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      className={`flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition cursor-pointer select-none ${
+        disabled
+          ? "border-border/40 opacity-50 cursor-not-allowed"
+          : dragging
+            ? "border-accent bg-accent/10"
+            : "border-border bg-card hover:border-accent/60 hover:bg-accent/5"
+      }`}
+    >
+      <input
+        id={id}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        disabled={disabled || uploading}
+        className="sr-only"
+        onChange={(e) => { if (e.target.files?.length) onFiles(e.target.files); }}
+      />
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <span className="text-sm text-foreground font-medium">
+        {uploading ? "Uploading…" : dragging ? "Drop photos here" : "Click or drag photos here"}
+      </span>
+      <span className="text-[11px] text-muted-foreground">{hint}</span>
+    </label>
+  );
+}
+
 // ─── Album Photo Upload ───────────────────────────────────────────────────────
 
 function AlbumPhotoUpload({
@@ -440,7 +580,6 @@ function AlbumPhotoUpload({
   const [uploading, setUploading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFiles(files: FileList) {
     if (!files.length || !email.trim()) return;
@@ -497,26 +636,18 @@ function AlbumPhotoUpload({
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.com"
+        autoComplete="email"
         className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
       />
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        multiple
-        className="hidden"
-        onChange={(e) => { if (e.target.files) handleFiles(e.target.files); }}
+      <DropZone
+        id="album-creator-upload"
+        uploading={uploading}
+        disabled={!email.trim()}
+        onFiles={handleFiles}
+        hint={tm.addPhotosHint}
       />
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => email.trim() && inputRef.current?.click()}
-          disabled={uploading || !email.trim()}
-          className="rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 transition"
-        >
-          {uploading ? tm.addPhotosUploading : tm.addPhotosSelect}
-        </button>
         <button
           type="button"
           onClick={() => { setOpen(false); setError(null); }}
@@ -525,7 +656,218 @@ function AlbumPhotoUpload({
           {tm.addPhotosCancel}
         </button>
       </div>
-      <p className="text-[11px] text-muted-foreground">{tm.addPhotosHint}</p>
+    </div>
+  );
+}
+
+// ─── Guest Photo Upload ───────────────────────────────────────────────────────
+
+function GuestPhotoUpload({
+  memorialId,
+  guestPhotoMode,
+  onAdded,
+}: {
+  memorialId: string;
+  guestPhotoMode: string;
+  onAdded: (url: string, mode: string) => void;
+}) {
+  const { t } = useLang();
+  const tm = t.memorial;
+  const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleFiles(files: FileList) {
+    if (!files.length) return;
+    setUploading(true);
+    setError(null);
+    try {
+      for (const file of Array.from(files)) {
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) continue;
+        if (file.size > 10 * 1024 * 1024) continue;
+        const path = `album-photos/${memorialId}/guest-${crypto.randomUUID()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("portraits")
+          .upload(path, file, { contentType: file.type, cacheControl: "3600", upsert: false });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("portraits").getPublicUrl(path);
+        const result = await addGuestPhoto({ data: { memorialId, url: data.publicUrl } });
+        onAdded(data.publicUrl, result.mode);
+      }
+      setDone(true);
+      setOpen(false);
+      setTimeout(() => setDone(false), 4000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2 text-sm text-foreground hover:border-accent/60 hover:bg-accent/5 transition"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          {tm.guestAddPhotosBtn}
+        </button>
+        {done && (
+          <span className="text-xs text-accent">
+            {guestPhotoMode === "immediate" ? tm.guestAddPhotosDoneImmediate : tm.guestAddPhotosDone}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <DropZone
+        id="album-guest-upload"
+        uploading={uploading}
+        onFiles={handleFiles}
+        hint={tm.guestAddPhotosHint}
+      />
+      <button
+        type="button"
+        onClick={() => { setOpen(false); setError(null); }}
+        className="text-sm text-muted-foreground hover:text-foreground transition"
+      >
+        {tm.guestAddPhotosCancel}
+      </button>
+    </div>
+  );
+}
+
+// ─── Pending Photos Panel ─────────────────────────────────────────────────────
+
+function PendingPhotosPanel({
+  memorialId,
+  pendingUrls,
+  onModerated,
+}: {
+  memorialId: string;
+  pendingUrls: string[];
+  onModerated: (gallery: string[], pending: string[]) => void;
+}) {
+  const { t } = useLang();
+  const tm = t.memorial;
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  function toggleSelect(url: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(url)) next.delete(url); else next.add(url);
+      return next;
+    });
+  }
+
+  async function handleApprove(approve: string[], remove: string[]) {
+    if (!email.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const result = await moderatePendingPhotos({ data: { memorialId, email, approve, remove } });
+      onModerated(result.galleryUrls, result.pendingUrls);
+      setSelected(new Set());
+      if (result.pendingUrls.length === 0) setOpen(false);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setError(msg === "EMAIL_MISMATCH" ? "Email doesn't match the creator email." : msg || "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-2 rounded-full border border-accent/50 bg-accent/5 px-5 py-2 text-sm text-foreground hover:bg-accent/10 transition"
+      >
+        {tm.pendingPhotosBtn(pendingUrls.length)}
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
+      <p className="font-display text-lg">{tm.pendingPhotosTitle}</p>
+      <p className="text-xs text-muted-foreground">{tm.pendingPhotosEmailPrompt}</p>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
+      />
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      {pendingUrls.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{tm.pendingEmpty}</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {pendingUrls.map((url, i) => (
+              <div
+                key={i}
+                onClick={() => toggleSelect(url)}
+                className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition ${selected.has(url) ? "border-accent" : "border-transparent"}`}
+              >
+                <img src={url} alt={`Guest photo ${i + 1}`} className="w-full h-full object-cover" />
+                {selected.has(url) && (
+                  <div className="absolute inset-0 bg-accent/20 flex items-center justify-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={selected.size === 0 || submitting || !email.trim()}
+              onClick={() => handleApprove([...selected], [])}
+              className="rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-40 transition"
+            >
+              {tm.pendingApprove}
+            </button>
+            <button
+              type="button"
+              disabled={submitting || !email.trim()}
+              onClick={() => handleApprove([...pendingUrls], [])}
+              className="rounded-full border border-accent bg-accent/10 text-foreground px-5 py-2 text-sm hover:bg-accent/20 disabled:opacity-40 transition"
+            >
+              {tm.pendingApproveAll}
+            </button>
+            <button
+              type="button"
+              disabled={selected.size === 0 || submitting || !email.trim()}
+              onClick={() => handleApprove([], [...selected])}
+              className="rounded-full border border-destructive/50 bg-destructive/5 text-destructive px-5 py-2 text-sm hover:bg-destructive/10 disabled:opacity-40 transition"
+            >
+              {tm.pendingRemove}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-sm text-muted-foreground hover:text-foreground transition px-2"
+            >
+              {tm.pendingDone}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

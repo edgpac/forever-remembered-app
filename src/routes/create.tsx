@@ -38,6 +38,7 @@ const STEP_SCHEMAS = [step1Schema, step2Schema, step3Schema];
 type InsertPayload = {
   memorialId: string;
   mode: string;
+  guestPhotoMode: string;
   v: MemorialFormData;
 };
 
@@ -58,10 +59,11 @@ const insertMemorial = createServerFn({ method: "POST" })
       }
     }
 
-    const { error } = await supabaseAdmin.from("memorials").insert({
+    const { error } = await (supabaseAdmin.from("memorials") as any).insert({
       memorial_id: memorialId,
       status: "generating",
       memorial_mode: mode,
+      guest_photo_mode: data.guestPhotoMode,
       subject_type: v.subject_type,
       full_name: v.full_name,
       nickname: v.nickname || null,
@@ -331,6 +333,7 @@ function CreateMemorial() {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [guestPhotoMode, setGuestPhotoMode] = useState<"immediate" | "approval">("immediate");
 
   const form = useForm<MemorialFormData>({
     mode: "onTouched",
@@ -411,7 +414,7 @@ function CreateMemorial() {
       const v = form.getValues();
       const memorialId = generateMemorialId();
 
-      await insertMemorial({ data: { memorialId, mode: mode!, v } });
+      await insertMemorial({ data: { memorialId, mode: mode!, guestPhotoMode, v } });
 
       void fetch("/api/process-memorial", {
         method: "POST",
@@ -444,7 +447,7 @@ function CreateMemorial() {
               >
                 {step === 1 && <Step1 form={form} mode={mode!} />}
                 {step === 2 && <Step2 form={form} mode={mode!} />}
-                {step === 3 && <Step3 form={form} mode={mode!} />}
+                {step === 3 && <Step3 form={form} mode={mode!} guestPhotoMode={guestPhotoMode} setGuestPhotoMode={setGuestPhotoMode} />}
               </motion.div>
             </AnimatePresence>
 
@@ -542,6 +545,7 @@ const textareaCls = inputCls + " min-h-[120px] resize-y font-serif leading-relax
 
 type MemorialMode = "memorial" | "story" | "album";
 type FormProp = { form: UseFormReturn<MemorialFormData>; mode: MemorialMode };
+type Step3Prop = FormProp & { guestPhotoMode: "immediate" | "approval"; setGuestPhotoMode: (v: "immediate" | "approval") => void };
 
 // ─── Step 1: Who ──────────────────────────────────────────────────────────────
 
@@ -1183,7 +1187,7 @@ function Step2({ form, mode }: FormProp) {
 
 // ─── Step 3: Finish ───────────────────────────────────────────────────────────
 
-function Step3({ form, mode }: FormProp) {
+function Step3({ form, mode, guestPhotoMode, setGuestPhotoMode }: Step3Prop) {
   const { register, watch, setValue, formState: { errors } } = form;
   const { t } = useLang();
   const ts = t.create.step3;
@@ -1220,6 +1224,29 @@ function Step3({ form, mode }: FormProp) {
           </Field>
           <Field label={ta3.feelLabel} error={errors.miss_most?.message}>
             <textarea {...register("miss_most")} className={textareaCls} placeholder={ta3.feelPlaceholder} />
+          </Field>
+          <Field label={ta3.guestUploadLabel} hint={ta3.guestUploadHint}>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              {(["immediate", "approval"] as const).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setGuestPhotoMode(opt)}
+                  className={`rounded-xl border-2 px-5 py-4 text-left transition ${
+                    guestPhotoMode === opt
+                      ? "border-accent bg-accent/10"
+                      : "border-border bg-card hover:border-accent/40"
+                  }`}
+                >
+                  <div className="font-display text-base font-medium">
+                    {opt === "immediate" ? ta3.guestUploadImmediate : ta3.guestUploadApproval}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {opt === "immediate" ? ta3.guestUploadImmediateSub : ta3.guestUploadApprovalSub}
+                  </div>
+                </button>
+              ))}
+            </div>
           </Field>
         </>
       ) : (
