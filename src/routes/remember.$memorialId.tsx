@@ -485,7 +485,7 @@ function MemorialPage() {
         <div className="pb-12 text-center text-sm text-muted-foreground">
           {m.creator_relationship && (
             <p className="font-serif italic">
-              {(m.memorial_mode ?? "memorial") === "story" ? tm.storySharedBy : tm.rememberByPrefix} {m.creator_relationship}
+              {isAlbum ? tm.albumPutTogetherBy : (m.memorial_mode ?? "memorial") === "story" ? tm.storySharedBy : tm.rememberByPrefix} {m.creator_relationship}
             </p>
           )}
           <Link to="/" className="mt-4 inline-block hover:text-foreground transition text-xs tracking-widest uppercase">
