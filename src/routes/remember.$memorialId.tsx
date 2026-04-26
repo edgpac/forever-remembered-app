@@ -692,12 +692,13 @@ function QRSection({
   const { t } = useLang();
   const tm = t.memorial;
   const isStory = (m.memorial_mode ?? "memorial") === "story";
+  const isAlbum = m.memorial_mode === "album";
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
     const shareData = {
       title: `${display} — Forever Here`,
-      text: isStory ? `Their story — ${display} · Forever Here` : `In loving memory of ${display} · Forever Here`,
+      text: isAlbum ? `${display} · Forever Here` : isStory ? `Their story — ${display} · Forever Here` : `In loving memory of ${display} · Forever Here`,
       url: memorialUrl,
     };
     try {
@@ -806,7 +807,7 @@ function QRSection({
 
   return (
     <div className="keepsake-card text-center">
-      <p className="memorial-eyebrow mb-5">{isStory ? tm.shareStoryTitle : tm.shareTitle}</p>
+      <p className="memorial-eyebrow mb-5">{isAlbum ? tm.shareAlbumTitle : isStory ? tm.shareStoryTitle : tm.shareTitle}</p>
 
       {m.qr_png_url ? (
         <img
